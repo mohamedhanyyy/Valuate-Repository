@@ -6,6 +6,7 @@ import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/auth/auth_state.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/theme/theme_cubit.dart';
+import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/theme_lang_bar.dart';
@@ -64,11 +65,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: BlocListener<AuthCubit, AuthState>(
           listener: (context, state) {
             if (state is PasswordResetEmailSent) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppStrings.get('linkSent', locale: locale)),
-                  backgroundColor: AppColors.success,
-                ),
+              AppSnackBar.showSuccess(
+                context,
+                message: AppStrings.get('linkSent', locale: locale),
               );
               Navigator.pop(context);
             }

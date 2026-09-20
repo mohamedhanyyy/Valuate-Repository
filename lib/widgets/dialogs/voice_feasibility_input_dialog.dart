@@ -4,6 +4,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../core/constants/app_colors.dart';
 import '../../core/services/ai_voice_parser_service.dart';
 import '../../models/feasibility_study.dart';
+import '../common/app_snack_bar.dart';
 
 class VoiceFeasibilityInputDialog extends StatefulWidget {
   final String locale;
@@ -336,27 +337,11 @@ class _VoiceFeasibilityInputDialogState
     if (_parseResult != null) {
       widget.onStudyParsed(_parseResult!.study, _transcriptController.text.trim());
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  widget.locale == 'ar'
-                      ? 'تم تحليل التسجيل الصوتي وتعبئة جميع الحقول بنجاح! 🚀'
-                      : 'Voice transcript analyzed & all fields populated! 🚀',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.all(16),
-        ),
+      AppSnackBar.showSuccess(
+        context,
+        message: widget.locale == 'ar'
+            ? 'تم تحليل التسجيل الصوتي وتعبئة جميع الحقول بنجاح! 🚀'
+            : 'Voice transcript analyzed & all fields populated! 🚀',
       );
     }
   }

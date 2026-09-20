@@ -12,6 +12,7 @@ import '../../widgets/charts/cashflow_bar_chart.dart';
 import '../../widgets/charts/cost_breakdown_pie.dart';
 import '../../widgets/charts/scenario_comparison_chart.dart';
 import '../../widgets/animations/fade_slide_entrance.dart';
+import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/dialogs/voice_feasibility_input_dialog.dart';
 import '../../widgets/kpi_metric_tile.dart';
@@ -889,11 +890,9 @@ class _FeasibilityCalculatorScreenState
               backgroundColor: AppColors.primaryBlue,
               onPressed: () {
                 context.read<ProjectsCubit>().addOrUpdateStudy(study);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(AppStrings.get('studySavedSuccess', locale: locale)),
-                    backgroundColor: AppColors.success,
-                  ),
+                AppSnackBar.showSuccess(
+                  context,
+                  message: AppStrings.get('studySavedSuccess', locale: locale),
                 );
               },
             ),

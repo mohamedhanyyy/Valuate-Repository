@@ -1,12 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/network/api_endpoints.dart';
+import '../../core/network/dio_client.dart';
 import '../../core/services/preferences_service.dart';
 import '../../models/feasibility_study.dart';
 import 'projects_state.dart';
 
 class ProjectsCubit extends Cubit<ProjectsState> {
   final PreferencesService preferencesService;
+  final DioClient? dioClient;
 
-  ProjectsCubit({required this.preferencesService}) : super(ProjectsInitial());
+  ProjectsCubit({
+    required this.preferencesService,
+    this.dioClient,
+  }) : super(ProjectsInitial());
 
   void loadProjects() {
     emit(ProjectsLoading());
@@ -22,8 +28,12 @@ class ProjectsCubit extends Cubit<ProjectsState> {
           FeasibilityStudy(
             id: 'prj_01',
             title: 'Al-Narjis Premium Residences',
+            developerName: 'mohamed hany',
             assetType: 'Residential',
+            projectType: 'Sell',
+            country: 'Saudi Arabia',
             location: 'Riyadh, Saudi Arabia',
+            landPaymentMode: 'Cash Payment',
             landArea: 4200,
             far: 3.0,
             efficiencyPct: 86,
@@ -39,8 +49,12 @@ class ProjectsCubit extends Cubit<ProjectsState> {
           FeasibilityStudy(
             id: 'prj_02',
             title: 'Business Bay Prime Offices',
+            developerName: 'mohamed hany',
             assetType: 'Commercial',
+            projectType: 'Rent',
+            country: 'United Arab Emirates',
             location: 'Dubai, UAE',
+            landPaymentMode: 'Revenue Share',
             landArea: 3200,
             far: 4.5,
             efficiencyPct: 82,
@@ -56,8 +70,12 @@ class ProjectsCubit extends Cubit<ProjectsState> {
           FeasibilityStudy(
             id: 'prj_03',
             title: 'New Cairo Gated Villas',
+            developerName: 'mohamed hany',
             assetType: 'Residential',
+            projectType: 'Sell',
+            country: 'Egypt',
             location: 'Cairo, Egypt',
+            landPaymentMode: 'In Kind Share',
             landArea: 8000,
             far: 1.6,
             efficiencyPct: 90,
@@ -73,8 +91,12 @@ class ProjectsCubit extends Cubit<ProjectsState> {
           FeasibilityStudy(
             id: 'prj_04',
             title: 'Lusail Waterfront Mixed-Use',
+            developerName: 'mohamed hany',
             assetType: 'MixedUse',
+            projectType: 'Hold',
+            country: 'Qatar',
             location: 'Doha, Qatar',
+            landPaymentMode: 'Cash Payment',
             landArea: 5000,
             far: 3.5,
             efficiencyPct: 84,
@@ -113,6 +135,18 @@ class ProjectsCubit extends Cubit<ProjectsState> {
         selectedFilter: (state as ProjectsLoaded).selectedFilter,
         searchQuery: (state as ProjectsLoaded).searchQuery,
       ));
+
+      // Attempt remote backend sync asynchronously if dioClient is available
+      if (dioClient != null) {
+        try {
+          await dioClient!.post(
+            ApiEndpoints.projects,
+            data: study.toJson(),
+          );
+        } catch (_) {
+          // Keep local state intact if network/offline
+        }
+      }
     }
   }
 

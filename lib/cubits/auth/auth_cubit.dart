@@ -205,6 +205,29 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> updateUserProfile({
+    required String fullName,
+    required String email,
+    required String companyName,
+    required String phone,
+  }) async {
+    if (state is Authenticated) {
+      final current = (state as Authenticated).user;
+      final parts = fullName.trim().split(' ');
+      final first = parts.isNotEmpty ? parts.first : '';
+      final last = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      final updated = current.copyWith(
+        firstName: first,
+        lastName: last,
+        email: email.trim(),
+        companyName: companyName.trim(),
+        phone: phone.trim(),
+      );
+      await preferencesService.setUser(updated.toJson());
+      emit(Authenticated(updated));
+    }
+  }
+
   Future<void> signOut() async {
     await preferencesService.clearToken();
     await preferencesService.clearUser();

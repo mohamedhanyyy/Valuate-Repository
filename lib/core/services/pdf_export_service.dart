@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../models/feasibility_study.dart';
+import '../../widgets/common/app_snack_bar.dart';
 
 class PdfExportService {
   static Future<Uint8List> generateFeasibilityPdf({
@@ -433,11 +434,9 @@ class PdfExportService {
       );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error generating PDF: $e'),
-            backgroundColor: Colors.red,
-          ),
+        AppSnackBar.showError(
+          context,
+          message: 'Error generating PDF: $e',
         );
       }
     }
@@ -464,11 +463,9 @@ class PdfExportService {
       );
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error opening PDF: $e'),
-            backgroundColor: Colors.red,
-          ),
+        AppSnackBar.showError(
+          context,
+          message: 'Error opening PDF: $e',
         );
       }
     }

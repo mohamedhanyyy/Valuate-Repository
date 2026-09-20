@@ -10,6 +10,7 @@ import '../../models/feasibility_study.dart';
 import '../../widgets/charts/cashflow_bar_chart.dart';
 import '../../widgets/charts/cost_breakdown_pie.dart';
 import '../../widgets/charts/scenario_comparison_chart.dart';
+import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/kpi_metric_tile.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/verdict_badge.dart';
@@ -60,15 +61,11 @@ class ProjectDetailScreen extends StatelessWidget {
             tooltip: 'Load in calculator',
             onPressed: () {
               context.read<CalculatorCubit>().loadStudy(study);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    locale == 'ar'
-                        ? 'تم تحميل المشروع في الحاسبة للتعديل'
-                        : 'Study loaded into calculator for simulation',
-                  ),
-                  backgroundColor: AppColors.primaryBlue,
-                ),
+              AppSnackBar.showInfo(
+                context,
+                message: locale == 'ar'
+                    ? 'تم تحميل المشروع في الحاسبة للتعديل'
+                    : 'Study loaded into calculator for simulation',
               );
               Navigator.pop(context);
             },
@@ -148,9 +145,15 @@ class ProjectDetailScreen extends StatelessWidget {
               icon: Icons.location_city_rounded,
               isDark: isDark,
               children: [
+                _specRow(locale == 'ar' ? 'اسم المطور' : 'Developer Name', study.developerName, isDark),
+                _divider(isDark),
                 _specRow(AppStrings.get('projectType', locale: locale), study.assetType, isDark),
                 _divider(isDark),
-                _specRow(AppStrings.get('location', locale: locale), study.location, isDark),
+                _specRow(locale == 'ar' ? 'نوع الاستراتيجية' : 'Strategy Type', study.projectType, isDark),
+                _divider(isDark),
+                _specRow(locale == 'ar' ? 'الدولة والموقع' : 'Country & Location', '${study.location} (${study.country})', isDark),
+                _divider(isDark),
+                _specRow(locale == 'ar' ? 'هيكل دفع الأرض' : 'Land Payment Mode', study.landPaymentMode, isDark),
                 _divider(isDark),
                 _specRow(AppStrings.get('landArea', locale: locale), '${study.landArea.toStringAsFixed(0)} m²', isDark),
                 _divider(isDark),
@@ -256,23 +259,32 @@ class ProjectDetailScreen extends StatelessWidget {
 
   Widget _specRow(String label, String value, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.darkText : AppColors.lightText,
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 6,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.darkText : AppColors.lightText,
+              ),
             ),
           ),
         ],

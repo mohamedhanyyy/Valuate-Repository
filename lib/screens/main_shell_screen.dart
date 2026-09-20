@@ -10,14 +10,15 @@ import '../widgets/dialogs/logout_dialog.dart';
 import '../widgets/valuate_logo.dart';
 import 'account/change_password_screen.dart';
 import 'account/currency_screen.dart';
+import 'account/profile_screen.dart';
 import 'calculator/feasibility_calculator_screen.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'legal/privacy_policy_screen.dart';
 import 'legal/terms_of_service_screen.dart';
-import 'market/market_intelligence_screen.dart';
 import 'projects/projects_list_screen.dart';
 import 'settings/settings_screen.dart';
 import 'workspace/consolidations_screen.dart';
+import 'workspace/countries_screen.dart';
 import 'workspace/create_project_wizard_screen.dart';
 import 'workspace/reports_screen.dart';
 
@@ -49,7 +50,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
       DashboardScreen(onTabChange: _onTabSelect),
       const FeasibilityCalculatorScreen(),
       ProjectsListScreen(onNavigateTab: _onTabSelect),
-      const MarketIntelligenceScreen(),
+      const CountriesScreen(),
       const SettingsScreen(),
       const ReportsScreen(),
       const ConsolidationsScreen(),
@@ -166,7 +167,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     ),
                     _drawerItem(
                       icon: Icons.public_rounded,
-                      title: locale == 'ar' ? 'الدول والمؤشرات' : 'Countries',
+                      title: locale == 'ar' ? 'الدول' : 'Countries',
                       isSelected: _currentIndex == 3,
                       onTap: () {
                         Navigator.pop(context);
@@ -178,10 +179,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
                     _drawerItem(
                       icon: Icons.person_outline_rounded,
                       title: locale == 'ar' ? 'الملف الشخصي' : 'Profile',
-                      isSelected: _currentIndex == 4,
+                      isSelected: false,
                       onTap: () {
                         Navigator.pop(context);
-                        _onTabSelect(4);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ProfileScreen(),
+                          ),
+                        );
                       },
                     ),
                     _drawerItem(
@@ -210,6 +216,15 @@ class _MainShellScreenState extends State<MainShellScreen> {
                             builder: (_) => const ChangePasswordScreen(),
                           ),
                         );
+                      },
+                    ),
+                    _drawerItem(
+                      icon: Icons.settings_outlined,
+                      title: locale == 'ar' ? 'الإعدادات' : 'Settings',
+                      isSelected: _currentIndex == 4,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _onTabSelect(4);
                       },
                     ),
 

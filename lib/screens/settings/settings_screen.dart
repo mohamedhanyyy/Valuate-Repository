@@ -7,6 +7,8 @@ import '../../cubits/auth/auth_state.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/theme/theme_cubit.dart';
 import '../../widgets/dialogs/logout_dialog.dart';
+import '../account/change_password_screen.dart';
+import '../account/profile_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 
@@ -43,74 +45,139 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // User Profile Header Card
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+            // User Profile Header Card (clickable to profile)
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.primaryBlue, AppColors.brandBlue],
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          (user?.firstName.isNotEmpty ?? false)
+                              ? user!.firstName[0].toUpperCase()
+                              : 'V',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.fullName.isNotEmpty ?? false ? user!.fullName : 'mohamed hany',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? AppColors.darkText : AppColors.lightText,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            user?.companyName.isNotEmpty ?? false
+                                ? user!.companyName
+                                : 'testeing',
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: AppColors.gold,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            user?.email ?? 'mohamedfcis2000@gmail.com',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                      size: 22,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Account & Security Section
+            _sectionHeader(
+              locale == 'ar' ? 'الحساب والأمان' : 'Account & Security',
+              isDark,
+            ),
+            const SizedBox(height: 10),
+
+            Material(
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
+                side: BorderSide(
                   color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                 ),
               ),
-              child: Row(
+              clipBehavior: Clip.antiAlias,
+              child: Column(
                 children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AppColors.primaryBlue, AppColors.brandBlue],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        (user?.firstName.isNotEmpty ?? false)
-                            ? user!.firstName[0].toUpperCase()
-                            : 'V',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                  _settingTile(
+                    icon: Icons.person_outline_rounded,
+                    title: locale == 'ar' ? 'الملف الشخصي' : 'Profile',
+                    subtitle: locale == 'ar' ? 'تعديل البيانات الشخصية والشركة' : 'Manage personal & company details',
+                    isDark: isDark,
+                    trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                      );
+                    },
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user?.fullName.isNotEmpty ?? false ? user!.fullName : 'Valuate User',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.darkText : AppColors.lightText,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          user?.companyName.isNotEmpty ?? false
-                              ? user!.companyName
-                              : 'Gateway Real Estate',
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            color: AppColors.gold,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          user?.email ?? 'mohamedfcis2000@gmail.com',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                          ),
-                        ),
-                      ],
-                    ),
+
+                  _divider(isDark),
+                  _settingTile(
+                    icon: Icons.lock_outline_rounded,
+                    title: locale == 'ar' ? 'كلمة المرور' : 'Password',
+                    subtitle: locale == 'ar' ? 'تغيير كلمة المرور وتأمين الحساب' : 'Update password & secure account',
+                    isDark: isDark,
+                    trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -246,15 +313,8 @@ class SettingsScreen extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
-                  _settingTile(
-                    icon: Icons.verified_outlined,
-                    title: 'Valuate Intelligence Suite',
-                    subtitle: AppStrings.get('version', locale: locale),
-                    isDark: isDark,
-                    trailing: const Icon(Icons.cloud_done_rounded, size: 18, color: AppColors.success),
-                  ),
-                  _divider(isDark),
-                  _settingTile(
+
+                   _settingTile(
                     icon: Icons.description_outlined,
                     title: AppStrings.get('termsOfService', locale: locale),
                     isDark: isDark,

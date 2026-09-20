@@ -16,6 +16,7 @@ import 'cubits/theme/theme_cubit.dart';
 import 'screens/auth/sign_in_screen.dart';
 import 'screens/main_shell_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
+import 'widgets/common/app_snack_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,11 +51,13 @@ class ValuateApp extends StatelessWidget {
             preferencesService: preferencesService,
           )..checkAuthStatus(),
         ),
+
         BlocProvider(create: (_) => CalculatorCubit()),
         BlocProvider(
-          create: (_) =>
-              ProjectsCubit(preferencesService: preferencesService)
-                ..loadProjects(),
+          create: (_) => ProjectsCubit(
+            preferencesService: preferencesService,
+            dioClient: dioClient,
+          )..loadProjects(),
         ),
         BlocProvider(create: (_) => MarketCubit()..loadBenchmarks()),
       ],
@@ -74,6 +77,7 @@ class _ValuateAppView extends StatelessWidget {
     final locale = context.watch<LocaleCubit>().state;
 
     return MaterialApp(
+      navigatorKey: AppSnackBar.navigatorKey,
       title: 'Valuate — Real Estate Intelligence',
       debugShowCheckedModeBanner: false,
       themeMode: isDark ? ThemeMode.dark : ThemeMode.light,

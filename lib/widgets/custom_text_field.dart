@@ -15,7 +15,7 @@ class CustomTextField extends StatefulWidget {
 
   const CustomTextField({
     super.key,
-    required this.label,
+    this.label = '',
     required this.hintText,
     this.controller,
     this.isPassword = false,
