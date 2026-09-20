@@ -66,9 +66,18 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>ar</string>
+		<string>en</string>
+	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This app requires access to the microphone to record real estate feasibility voice notes.</string>
+	<string>Valuate needs microphone access to record your voice notes for automated real estate feasibility calculations.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This app requires speech recognition to transcribe your real estate project voice input.</string>
+	<string>Valuate uses speech recognition to transcribe your spoken real estate project parameters into calculator fields.</string>
 </dict>
 </plist>
