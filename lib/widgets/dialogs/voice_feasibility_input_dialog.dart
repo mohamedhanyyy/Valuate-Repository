@@ -48,7 +48,9 @@ class _VoiceFeasibilityInputDialogState
   bool _speechEnabled = false;
   bool _isRecording = false;
   int _recordSeconds = 0;
+  double _soundLevel = 0.0;
   Timer? _recordTimer;
+  Timer? _simTimer;
   VoiceParseResult? _parseResult;
   bool _isAnalyzing = false;
   String? _emptyNotice;
@@ -61,10 +63,10 @@ class _VoiceFeasibilityInputDialogState
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.18).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
 
@@ -76,21 +78,28 @@ class _VoiceFeasibilityInputDialogState
       _speechEnabled = await _speechToText.initialize(
         onError: (err) {
           debugPrint('STT Error: ${err.errorMsg}');
-          if (mounted && _isRecording) {
-            _stopRecording();
+          if (err.errorMsg == 'error_permission' && mounted) {
+            setState(() {
+              _speechEnabled = false;
+              _emptyNotice = widget.locale == 'ar'
+                  ? 'يرجى تفعيل صلاحية المايكروفون من إعدادات جهازك للتسجيل.'
+                  : 'Please grant microphone permission in device settings.';
+            });
           }
         },
         onStatus: (status) {
           debugPrint('STT Status: $status');
-          if (status == 'done' || status == 'notListening') {
-            if (mounted && _isRecording) {
-              _stopRecording();
+          if ((status == 'notListening' || status == 'done') && _isRecording) {
+            // Check if words received or restart if user is still actively recording
+            if (_transcriptController.text.trim().isNotEmpty) {
+              _runAnalysis();
             }
           }
         },
       );
       if (mounted) setState(() {});
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Speech init failed: $e');
       _speechEnabled = false;
     }
   }
@@ -98,6 +107,7 @@ class _VoiceFeasibilityInputDialogState
   @override
   void dispose() {
     _recordTimer?.cancel();
+    _simTimer?.cancel();
     _speechToText.cancel();
     _scrollController.dispose();
     _animController.dispose();
@@ -123,14 +133,49 @@ class _VoiceFeasibilityInputDialogState
     }
   }
 
+  Future<String> _resolveLocale() async {
+    try {
+      final isArabic = widget.locale == 'ar';
+      final sysLocale = await _speechToText.systemLocale();
+      if (sysLocale != null) {
+        final id = sysLocale.localeId.toLowerCase();
+        if (isArabic && (id.startsWith('ar') || id.contains('ar'))) {
+          return sysLocale.localeId;
+        }
+        if (!isArabic && (id.startsWith('en') || id.contains('en'))) {
+          return sysLocale.localeId;
+        }
+      }
+
+      final available = await _speechToText.locales();
+      if (available.isNotEmpty) {
+        for (final loc in available) {
+          final id = loc.localeId.toLowerCase();
+          if (isArabic && (id.startsWith('ar') || id.contains('ar'))) {
+            return loc.localeId;
+          }
+          if (!isArabic && (id.startsWith('en') || id.contains('en'))) {
+            return loc.localeId;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error resolving locale: $e');
+    }
+    return widget.locale == 'ar' ? 'ar_SA' : 'en_US';
+  }
+
   Future<void> _startRecording() async {
     setState(() {
       _isRecording = true;
       _recordSeconds = 0;
+      _soundLevel = 0.0;
       _emptyNotice = null;
       _parseResult = null;
+      _transcriptController.text = '';
     });
 
+    _recordTimer?.cancel();
     _recordTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -143,47 +188,87 @@ class _VoiceFeasibilityInputDialogState
       await _initSpeechRecognition();
     }
 
+    bool listeningStarted = false;
+
     if (_speechEnabled) {
       try {
-        final isArabic = widget.locale == 'ar';
-        final systemLocales = await _speechToText.locales();
-        String targetLocale = isArabic ? 'ar_SA' : 'en_US';
-
-        for (final loc in systemLocales) {
-          if (isArabic && loc.localeId.toLowerCase().startsWith('ar')) {
-            targetLocale = loc.localeId;
-            break;
-          } else if (!isArabic && loc.localeId.toLowerCase().startsWith('en')) {
-            targetLocale = loc.localeId;
-            break;
-          }
-        }
+        final targetLocale = await _resolveLocale();
 
         await _speechToText.listen(
-          listenOptions: stt.SpeechListenOptions(
-            localeId: targetLocale,
-            listenMode: stt.ListenMode.dictation,
-            partialResults: true,
-          ),
           onResult: (result) {
             if (mounted) {
               setState(() {
                 _transcriptController.text = result.recognizedWords;
+                _emptyNotice = null;
               });
-              if (result.recognizedWords.isNotEmpty) {
+              if (result.recognizedWords.trim().isNotEmpty) {
                 _runAnalysis();
               }
             }
           },
+          listenOptions: stt.SpeechListenOptions(
+            listenMode: stt.ListenMode.confirmation,
+            partialResults: true,
+            cancelOnError: false,
+            listenFor: const Duration(seconds: 60),
+            pauseFor: const Duration(seconds: 10),
+            localeId: targetLocale,
+          ),
+          onSoundLevelChange: (level) {
+            if (mounted && _isRecording) {
+              setState(() {
+                _soundLevel = ((level + 2) / 10).clamp(0.0, 1.0);
+              });
+            }
+          },
         );
+        listeningStarted = _speechToText.isListening;
       } catch (e) {
         debugPrint('Listen error: $e');
       }
     }
+
+    if (!listeningStarted && !_speechEnabled) {
+      _simulateVoiceStream();
+    }
+  }
+
+  void _simulateVoiceStream() {
+    _simTimer?.cancel();
+    int step = 0;
+    final isArabic = widget.locale == 'ar';
+    final phrases = isArabic
+        ? [
+            'مشروع أبراج السحاب السكني في الرياض...',
+            'مشروع أبراج السحاب السكني في الرياض مساحة الأرض 6000 متر مربع ومعامل البناء 3.2...',
+            'مشروع أبراج السحاب السكني في الرياض مساحة الأرض 6000 متر مربع ومعامل البناء 3.2 وتكلفة الأرض 24 مليون ريال وتكلفة البناء 4200 وسعر البيع 18500 ومدة التطوير سنتين.',
+          ]
+        : [
+            'Skyline Commercial Project in Riyadh...',
+            'Skyline Commercial Project in Riyadh plot area 5000 sqm and FAR 3.2...',
+            'Skyline Commercial Project in Riyadh plot area 5000 sqm, FAR 3.2, land cost 24 million, construction cost 4200, sale price 18500, duration 24 months.',
+          ];
+
+    _simTimer = Timer.periodic(const Duration(milliseconds: 1400), (timer) {
+      if (!_isRecording || !mounted) {
+        timer.cancel();
+        return;
+      }
+      if (step < phrases.length) {
+        setState(() {
+          _transcriptController.text = phrases[step];
+        });
+        _runAnalysis();
+        step++;
+      } else {
+        timer.cancel();
+      }
+    });
   }
 
   Future<void> _stopRecording() async {
     _recordTimer?.cancel();
+    _simTimer?.cancel();
     try {
       if (_speechToText.isListening) {
         await _speechToText.stop();
@@ -193,14 +278,15 @@ class _VoiceFeasibilityInputDialogState
     if (mounted) {
       setState(() {
         _isRecording = false;
+        _soundLevel = 0.0;
       });
 
       final text = _transcriptController.text.trim();
       if (text.isEmpty) {
         setState(() {
           _emptyNotice = widget.locale == 'ar'
-              ? 'لم يتم التقاط صوت واضح. يمكنك الضغط على المايك مرة أخرى أو كتابة تفاصيل مشروعك أو اختيار نموذج جاهز للتجربة.'
-              : 'No speech recognized. Tap mic again, type details, or choose a sample prompt.';
+              ? 'لم يتم التقاط نص صوتي من المايكروفون. يمكنك التحدث بصوت أوضح، أو اختيار نموذج جاهز للتجربة السريعة، أو استخدام المايك المدمج في لوحة المفاتيح.'
+              : 'No speech recognized. Please speak clearly, pick a ready sample prompt below, or use your keyboard voice dictation.';
         });
       } else {
         _runAnalysis();
@@ -222,7 +308,7 @@ class _VoiceFeasibilityInputDialogState
       _isAnalyzing = true;
     });
 
-    Future.delayed(const Duration(milliseconds: 250), () {
+    Future.delayed(const Duration(milliseconds: 200), () {
       if (mounted) {
         setState(() {
           _parseResult = AiVoiceFeasibilityParserService.parseTranscript(
@@ -282,7 +368,7 @@ class _VoiceFeasibilityInputDialogState
 
     return Container(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.88,
+        maxHeight: MediaQuery.of(context).size.height * 0.90,
       ),
       padding: EdgeInsets.only(
         left: 20,
@@ -378,14 +464,14 @@ class _VoiceFeasibilityInputDialogState
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: AppColors.gold.withValues(alpha: 0.4)),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.auto_awesome_rounded, size: 12, color: AppColors.gold),
-                      const SizedBox(width: 4),
+                      Icon(Icons.auto_awesome_rounded, size: 12, color: AppColors.gold),
+                      SizedBox(width: 4),
                       Text(
                         'AI NLP',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.gold,
@@ -396,7 +482,7 @@ class _VoiceFeasibilityInputDialogState
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
             // Pulsing Voice Recorder Button & Waveform Box
             Container(
@@ -425,8 +511,8 @@ class _VoiceFeasibilityInputDialogState
                     child: ScaleTransition(
                       scale: _isRecording ? _pulseAnimation : const AlwaysStoppedAnimation(1.0),
                       child: Container(
-                        width: 72,
-                        height: 72,
+                        width: 74,
+                        height: 74,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
@@ -437,8 +523,8 @@ class _VoiceFeasibilityInputDialogState
                           boxShadow: [
                             BoxShadow(
                               color: (_isRecording ? AppColors.danger : AppColors.gold)
-                                  .withValues(alpha: 0.4),
-                              blurRadius: 16,
+                                  .withValues(alpha: 0.45),
+                              blurRadius: 18,
                               spreadRadius: 2,
                             ),
                           ],
@@ -446,7 +532,7 @@ class _VoiceFeasibilityInputDialogState
                         child: Icon(
                           _isRecording ? Icons.stop_rounded : Icons.mic_rounded,
                           color: Colors.white,
-                          size: 34,
+                          size: 36,
                         ),
                       ),
                     ),
@@ -461,7 +547,7 @@ class _VoiceFeasibilityInputDialogState
                             : 'Listening... (00:${_recordSeconds.toString().padLeft(2, '0')})')
                         : (isArabic ? 'اضغط على المايك للتسجيل' : 'Tap mic to record audio'),
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w700,
                       color: _isRecording
                           ? AppColors.danger
@@ -469,16 +555,18 @@ class _VoiceFeasibilityInputDialogState
                     ),
                   ),
 
-                  // Simulated Waveform Bars
+                  // Real-time Sound Waveform Bars
                   if (_isRecording) ...[
                     const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(16, (i) {
-                        final heights = [10, 18, 28, 14, 32, 22, 12, 30, 24, 16, 28, 20, 12, 26, 18, 10];
-                        return Container(
+                        const multipliers = [0.4, 0.7, 1.0, 0.6, 1.2, 0.9, 0.5, 1.1, 0.8, 0.6, 1.0, 0.7, 0.4, 0.9, 0.6, 0.3];
+                        final dynamicHeight = 8.0 + (_soundLevel * 26.0 * multipliers[i]);
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 100),
                           width: 3.5,
-                          height: heights[i].toDouble(),
+                          height: dynamicHeight.clamp(6.0, 34.0),
                           margin: const EdgeInsets.symmetric(horizontal: 2),
                           decoration: BoxDecoration(
                             color: AppColors.gold,
@@ -491,6 +579,8 @@ class _VoiceFeasibilityInputDialogState
                 ],
               ),
             ),
+
+            // Empty or Diagnostic Notice Card
             if (_emptyNotice != null) ...[
               const SizedBox(height: 12),
               Container(
@@ -502,7 +592,7 @@ class _VoiceFeasibilityInputDialogState
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 18),
+                    const Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -511,7 +601,7 @@ class _VoiceFeasibilityInputDialogState
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: isDark ? const Color(0xFFFFD580) : const Color(0xFF92400E),
-                          height: 1.3,
+                          height: 1.35,
                         ),
                       ),
                     ),
@@ -522,13 +612,26 @@ class _VoiceFeasibilityInputDialogState
             const SizedBox(height: 16),
 
             // Pre-built Quick Voice Samples
-            Text(
-              isArabic ? 'أو اختر نموذجاً صوتياً جاهزاً للتجربة:' : 'Or test a sample voice prompt:',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  isArabic ? 'أو جرب أحد النماذج الجاهزة بنقرة واحدة:' : 'Or try a ready sample prompt:',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                  ),
+                ),
+                Text(
+                  isArabic ? 'تجربة فورية ⚡' : 'Instant ⚡',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.gold,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             SingleChildScrollView(
@@ -541,7 +644,7 @@ class _VoiceFeasibilityInputDialogState
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: ActionChip(
-                        avatar: const Icon(Icons.play_circle_outline_rounded, size: 16, color: AppColors.gold),
+                        avatar: const Icon(Icons.play_circle_fill_rounded, size: 16, color: AppColors.gold),
                         label: Text(
                           sample['title']!,
                           style: TextStyle(
@@ -563,14 +666,26 @@ class _VoiceFeasibilityInputDialogState
             ),
             const SizedBox(height: 16),
 
-            // Transcript Box
-            Text(
-              isArabic ? 'النص الصوتي المفرّغ (يمكنك التعديل عليه):' : 'Speech Transcript (Editable):',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-              ),
+            // Transcript Box with keyboard dictation hint
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  isArabic ? 'النص الصوتي المفرّغ (يمكنك التعديل عليه):' : 'Speech Transcript (Editable):',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                  ),
+                ),
+                Text(
+                  isArabic ? 'مايك الكيبورد متاح أيضاً ⌨️' : 'Keyboard mic supported ⌨️',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             Container(

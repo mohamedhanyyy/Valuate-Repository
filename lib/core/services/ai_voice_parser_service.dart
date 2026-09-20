@@ -173,12 +173,47 @@ class AiVoiceFeasibilityParserService {
     t = t.replaceAll(RegExp(r'[إأآا]'), 'ا');
     t = t.replaceAll('ة', 'ه');
     t = t.replaceAll('ى', 'ي');
+    t = t.replaceAll('،', ' ');
+    t = t.replaceAll('ـ', ''); // Tatweel
+    
     // Replace Arabic digits with standard digits
     const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
     for (int i = 0; i < 10; i++) {
       t = t.replaceAll(arabicDigits[i], '$i');
     }
-    // Remove commas from numbers like 4,000
+
+    // Decimal points
+    t = t.replaceAll(RegExp(r'\s*فاصله\s*'), '.');
+    t = t.replaceAll(RegExp(r'\s*بوينت\s*'), '.');
+    t = t.replaceAll(RegExp(r'\s*نقطه\s*'), '.');
+    t = t.replaceAll(RegExp(r'\s*دوت\s*'), '.');
+    t = t.replaceAll('ونصف', '.5');
+    t = t.replaceAll('وربع', '.25');
+
+    // Spoken number words
+    t = t.replaceAll(RegExp(r'\bواحد\b'), '1');
+    t = t.replaceAll(RegExp(r'\bاثنين\b|\bاثنان\b'), '2');
+    t = t.replaceAll(RegExp(r'\bثلاثه\b|\bثلاث\b'), '3');
+    t = t.replaceAll(RegExp(r'\bاربعه\b|\bاربع\b'), '4');
+    t = t.replaceAll(RegExp(r'\bخمسه\b|\bخمس\b'), '5');
+    t = t.replaceAll(RegExp(r'\bسته\b|\bست\b'), '6');
+    t = t.replaceAll(RegExp(r'\bسبعه\b|\bسبع\b'), '7');
+    t = t.replaceAll(RegExp(r'\bثمانيه\b|\bثماني\b|\bثمان\b'), '8');
+    t = t.replaceAll(RegExp(r'\bتسعه\b|\bتسع\b'), '9');
+    t = t.replaceAll(RegExp(r'\bعشره\b|\bعشر\b'), '10');
+    t = t.replaceAll(RegExp(r'\bعشرين\b|\bعشرون\b'), '20');
+    t = t.replaceAll(RegExp(r'\bثلاثين\b|\bثلاثون\b'), '30');
+    t = t.replaceAll(RegExp(r'\bاربعين\b|\bاربعون\b'), '40');
+    t = t.replaceAll(RegExp(r'\bخمسين\b|\bخمسون\b'), '50');
+    t = t.replaceAll(RegExp(r'\bستين\b|\bستون\b'), '60');
+    t = t.replaceAll(RegExp(r'\bسبعين\b|\bسبعون\b'), '70');
+    t = t.replaceAll(RegExp(r'\bثمانين\b|\bثمانون\b'), '80');
+    t = t.replaceAll(RegExp(r'\bتسعين\b|\bتسعون\b'), '90');
+    t = t.replaceAll(RegExp(r'\bمائه\b|\bميه\b|\bمئه\b'), '100');
+    t = t.replaceAll(RegExp(r'\bمائتين\b|\bميتين\b|\bمئتين\b'), '200');
+    t = t.replaceAll(RegExp(r'\bالفين\b'), '2000');
+
+    // Remove commas inside numbers like 4,000 or 24,000,000
     t = t.replaceAll(RegExp(r'(\d),(\d)'), r'$1$2');
     return t;
   }
@@ -295,9 +330,20 @@ class AiVoiceFeasibilityParserService {
       if (val != null) return val * 1000000.0;
     }
 
+    // Land cost per sqm
+    final perSqmMatch = RegExp(
+      r'(?:سعر\s*متر\s*الارض|سعر\s*الارض\s*للمتر|تكلفه\s*متر\s*الارض|land\s*cost\s*per\s*sqm)\s*(?:تبلغ|هو|هي|:)?\s*(\d+(?:\.\d+)?)',
+    ).firstMatch(text);
+    if (perSqmMatch != null) {
+      final val = double.tryParse(perSqmMatch.group(1)!);
+      if (val != null && val > 0) {
+        return val * landArea;
+      }
+    }
+
     // General number for land cost
     final generalMatch = RegExp(
-      r'(?:تكلفه\s*الارض|سعر\s*الارض|شراء\s*الارض|land\s*cost)\s*(?:تبلغ|هي|:)?\s*(\d+(?:\.\d+)?)',
+      r'(?:تكلفه\s*الارض|سعر\s*الارض|شراء\s*الارض|قيمه\s*الارض|الارض|land\s*cost)\s*(?:تبلغ|هي|:)?\s*(\d+(?:\.\d+)?)',
     ).firstMatch(text);
 
     if (generalMatch != null) {
