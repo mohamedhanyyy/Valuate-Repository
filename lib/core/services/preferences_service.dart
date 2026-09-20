@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferencesService {
@@ -50,8 +51,20 @@ class PreferencesService {
   String getThemeMode() => _prefs.getString(keyTheme) ?? 'dark';
   Future<bool> setThemeMode(String theme) => _prefs.setString(keyTheme, theme);
 
-  // Locale (en / ar)
-  String getLocale() => _prefs.getString(keyLocale) ?? 'en';
+  // Locale (en / ar - defaults to device system language)
+  String getLocale() {
+    final saved = _prefs.getString(keyLocale);
+    if (saved != null) return saved;
+
+    try {
+      final systemLang =
+          ui.PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+      if (systemLang.startsWith('ar')) {
+        return 'ar';
+      }
+    } catch (_) {}
+    return 'en';
+  }
   Future<bool> setLocale(String locale) => _prefs.setString(keyLocale, locale);
 
   // Currency (SAR, AED, USD, EGP, QAR, KWD)
