@@ -418,9 +418,18 @@ class PdfExportService {
       final cleanName = study.title.replaceAll(RegExp(r'[^\w\s\u0600-\u06FF-]'), '_').trim();
       final filename = '$cleanName-Feasibility-Report.pdf';
 
+      Rect? bounds;
+      if (context.mounted) {
+        final box = context.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          bounds = box.localToGlobal(Offset.zero) & box.size;
+        }
+      }
+
       await Printing.sharePdf(
         bytes: pdfBytes,
         filename: filename,
+        bounds: bounds,
       );
     } catch (e) {
       if (context.mounted) {
