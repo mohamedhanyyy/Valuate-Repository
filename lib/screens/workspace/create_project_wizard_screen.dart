@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/constants/location_data.dart';
+import '../../core/services/user_location_service.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/auth/auth_state.dart';
 import '../../cubits/locale/locale_cubit.dart';
@@ -51,9 +53,9 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
   int _currentStep = 1; // Step 1: Basic info & Location, Step 2: Sector Dates & Land Details
 
   final _formKey = GlobalKey<FormState>();
-  final _projectNameController = TextEditingController(text: kDebugMode ? 'مشروع برج الأندلس' : null);
+  final _projectNameController = TextEditingController();
   final _developerNameController = TextEditingController();
-  final _locationController = TextEditingController(text: kDebugMode ? 'الرياض - حي النرجس' : null);
+  final _locationController = TextEditingController();
   final _landAreaController = TextEditingController(text: kDebugMode ? '5000' : null);
   final _landCostController = TextEditingController(text: kDebugMode ? '15000000' : null);
   final _landPricePerSqmController = TextEditingController(text: kDebugMode ? '3000' : null);
@@ -65,55 +67,115 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
   final _revenueSharePctController = TextEditingController(text: kDebugMode ? '15' : null);
   final _inKindSharePctController = TextEditingController(text: kDebugMode ? '20' : null);
 
-  // Selected Sectors (Multi-select)
-  final List<String> _mainSectors = const ['سكني', 'تجاري', 'ضيافة'];
-  final Set<String> _selectedSectors = kDebugMode ? {'سكني'} : {};
+  static const List<Map<String, String>> _sectorsList = [
+    {'key': 'residential', 'ar': 'سكني', 'en': 'Residential'},
+    {'key': 'commercial', 'ar': 'تجاري', 'en': 'Commercial'},
+    {'key': 'hospitality', 'ar': 'ضيافة', 'en': 'Hospitality'},
+  ];
+
+  static const List<Map<String, String>> _typeOptions = [
+    {'key': 'on_plan', 'ar': 'البيع على المخطط', 'en': 'On Plan Sales'},
+    {'key': 'off_plan', 'ar': 'البيع على الخارطة', 'en': 'Off Plan Sales'},
+    {'key': 'percentage_completion', 'ar': 'نسبة الإنجاز', 'en': 'Percentage Of Completion'},
+  ];
+
+  static const List<Map<String, String>> _countryOptions = [
+    {'code': 'SA', 'ar': 'المملكة العربية السعودية', 'en': 'Saudi Arabia', 'currency': 'SAR', 'city_ar': 'الرياض', 'city_en': 'Riyadh'},
+    {'code': 'EG', 'ar': 'جمهورية مصر العربية', 'en': 'Egypt', 'currency': 'EGP', 'city_ar': 'القاهرة', 'city_en': 'Cairo'},
+  ];
+
+  static const List<Map<String, String>> _paymentModeOptions = [
+    {'key': 'land_payment', 'ar': 'دفع ثمن الأرض', 'en': 'Land Purchase'},
+    {'key': 'revenue_share', 'ar': 'حصة الإيرادات', 'en': 'Revenue Share'},
+    {'key': 'inkind_share', 'ar': 'حصة عينية', 'en': 'In-Kind Share'},
+  ];
+
+  final Set<String> _selectedSectors = kDebugMode ? {'residential'} : {};
   final Map<String, _SectorDateControllers> _sectorControllers = {};
   final Map<String, TextEditingController> _sectorPercentageControllers = {};
 
-  String _selectedType = kDebugMode ? 'On Plan Sales' : '';
-  String _selectedCountry = kDebugMode ? 'المملكة العربية السعودية' : '';
-  String _selectedCity = kDebugMode ? 'الرياض' : '';
-  final Set<String> _selectedLandPaymentModes = kDebugMode ? {'دفع ثمن الأرض'} : {};
+  String _selectedTypeKey = 'on_plan';
+  String _selectedCountryCode = 'SA';
+  String _selectedGovernorateKey = 'riyadh';
+  String _selectedCity = '';
+  final Set<String> _selectedLandPaymentModes = kDebugMode ? {'land_payment'} : {};
   String? _mapGisPoint = kDebugMode ? '24.8423, 46.6631' : '';
 
-  final List<String> _typesList = const [
-    'On Plan Sales',
-    'Off Plan Sales',
-    'Percentage Of Completion',
-  ];
+  String _getSectorLabel(String key, bool isAr) {
+    final match = _sectorsList.firstWhere(
+      (s) => s['key'] == key || s['ar'] == key || s['en']?.toLowerCase() == key.toLowerCase(),
+      orElse: () => {'key': key, 'ar': key, 'en': key},
+    );
+    return isAr ? match['ar']! : match['en']!;
+  }
 
-  final List<String> _countriesAr = const [
-    'المملكة العربية السعودية',
-    'الإمارات العربية المتحدة',
-    'جمهورية مصر العربية',
-    'دولة قطر',
-    'دولة الكويت',
-    'مملكة البحرين',
-    'سلطنة عمان',
-  ];
+  String _getTypeLabel(String key, bool isAr) {
+    final match = _typeOptions.firstWhere(
+      (t) => t['key'] == key || t['en'] == key,
+      orElse: () => {'key': key, 'ar': key, 'en': key},
+    );
+    return isAr ? match['ar']! : match['en']!;
+  }
 
-  final List<String> _paymentModes = const [
-    'حصة عينية',
-    'حصة الإيرادات',
-    'دفع ثمن الأرض',
-  ];
+  String _getCountryLabel(String code, bool isAr) {
+    final match = _countryOptions.firstWhere(
+      (c) => c['code'] == code,
+      orElse: () => _countryOptions.first,
+    );
+    return isAr ? match['ar']! : match['en']!;
+  }
+
+  String _getPaymentModeLabel(String key, bool isAr) {
+    final match = _paymentModeOptions.firstWhere(
+      (m) => m['key'] == key || m['ar'] == key || m['en'] == key,
+      orElse: () => {'key': key, 'ar': key, 'en': key},
+    );
+    return isAr ? match['ar']! : match['en']!;
+  }
 
   @override
   void initState() {
     super.initState();
+    final isAr = context.read<LocaleCubit>().state == 'ar';
     final authState = context.read<AuthCubit>().state;
     final defaultDevName = authState is Authenticated
         ? authState.user.fullName
-        : (kDebugMode ? 'mohamed hany' : '');
+        : (kDebugMode ? (isAr ? 'محمد هاني' : 'Mohamed Hany') : '');
     _developerNameController.text = defaultDevName;
 
     // Initialize controllers for sectors
-    for (final s in _mainSectors) {
-      _sectorControllers[s] = _SectorDateControllers();
+    for (final s in _sectorsList) {
+      _sectorControllers[s['key']!] = _SectorDateControllers();
     }
     if (kDebugMode) {
-      _sectorPercentageControllers['سكني'] = TextEditingController(text: '100');
+      _sectorPercentageControllers['residential'] = TextEditingController(text: '100');
+      _projectNameController.text = isAr ? 'مشروع برج الأندلس' : 'Al-Andalus Tower Project';
+    }
+
+    final defaultGov = LocationData.getDefaultGovernorate(_selectedCountryCode);
+    _selectedGovernorateKey = defaultGov.key;
+    _selectedCity = isAr ? defaultGov.nameAr : defaultGov.nameEn;
+    _locationController.text = isAr ? defaultGov.nameAr : defaultGov.nameEn;
+    _mapGisPoint = '${defaultGov.defaultLat.toStringAsFixed(4)}, ${defaultGov.defaultLng.toStringAsFixed(4)}';
+
+    // Fetch user's real device GPS location for initial location
+    _initUserLocation();
+  }
+
+  Future<void> _initUserLocation() async {
+    try {
+      final userLoc = await UserLocationService.determineUserLocation(preferredCountry: _selectedCountryCode);
+      if (!mounted) return;
+      final isAr = context.read<LocaleCubit>().state == 'ar';
+      setState(() {
+        _selectedCountryCode = userLoc.countryCode;
+        _selectedGovernorateKey = userLoc.governorate.key;
+        _selectedCity = isAr ? userLoc.governorate.nameAr : userLoc.governorate.nameEn;
+        _locationController.text = isAr ? userLoc.addressAr : userLoc.addressEn;
+        _mapGisPoint = '${userLoc.lat.toStringAsFixed(4)}, ${userLoc.lng.toStringAsFixed(4)}';
+      });
+    } catch (e) {
+      debugPrint('Init user location error: $e');
     }
   }
 
@@ -154,31 +216,29 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
     return sum;
   }
 
-  void _onToggleSector(String sector) {
+  void _onToggleLandPaymentMode(String mode) {
     setState(() {
-      if (_selectedSectors.contains(sector)) {
-        _selectedSectors.remove(sector);
-        _sectorControllers[sector]?.dispose();
-        _sectorControllers.remove(sector);
-      } else {
-        _selectedSectors.add(sector);
-        _sectorControllers[sector] = _SectorDateControllers();
-        if (!_sectorPercentageControllers.containsKey(sector)) {
-          final defaultPct = _selectedSectors.length == 1 ? '100' : '0';
-          _sectorPercentageControllers[sector] = TextEditingController(text: defaultPct);
-        } else if (_selectedSectors.length == 1) {
-          _sectorPercentageControllers[sector]?.text = '100';
+      if (_selectedLandPaymentModes.contains(mode)) {
+        if (_selectedLandPaymentModes.length > 1) {
+          _selectedLandPaymentModes.remove(mode);
         }
+      } else {
+        _selectedLandPaymentModes.add(mode);
       }
     });
   }
 
-  void _onToggleLandPaymentMode(String mode) {
+  void _onToggleSector(String sector) {
     setState(() {
-      if (_selectedLandPaymentModes.contains(mode)) {
-        _selectedLandPaymentModes.remove(mode);
+      if (_selectedSectors.contains(sector)) {
+        if (_selectedSectors.length > 1) {
+          _selectedSectors.remove(sector);
+          _sectorPercentageControllers[sector]?.dispose();
+          _sectorPercentageControllers.remove(sector);
+        }
       } else {
-        _selectedLandPaymentModes.add(mode);
+        _selectedSectors.add(sector);
+        _sectorPercentageControllers[sector] = TextEditingController(text: '0');
       }
     });
   }
@@ -191,20 +251,31 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
   }
 
   void _pickMapLocation(bool isDark, String locale) async {
+    final isAr = locale == 'ar';
+    final currentCountry = _getCountryLabel(_selectedCountryCode, isAr);
     final result = await LocationMapPickerDialog.show(
       context,
-      currentCountry: _selectedCountry,
+      currentCountry: currentCountry,
       currentLocation: _locationController.text,
       isDark: isDark,
       locale: locale,
     );
 
     if (result != null) {
+      final matchedCountry = _countryOptions.firstWhere(
+        (c) => c['ar'] == result.countryAr || c['en']?.toLowerCase() == result.countryEn.toLowerCase(),
+        orElse: () => _selectedCountryCode == 'EG' ? _countryOptions.last : _countryOptions.first,
+      );
+      final matchedGov = LocationData.matchGovernorate(
+        matchedCountry['code']!,
+        '${result.cityAr} ${result.cityEn} ${result.nameAr} ${result.nameEn}',
+      );
       setState(() {
-        _locationController.text = locale == 'ar' ? result.nameAr : result.nameEn;
-        _selectedCountry = locale == 'ar' ? result.countryAr : result.countryEn;
-        _selectedCity = locale == 'ar' ? result.cityAr : result.cityEn;
-        _mapGisPoint = '${result.lat}, ${result.lng}';
+        _selectedCountryCode = matchedCountry['code']!;
+        _selectedGovernorateKey = matchedGov.key;
+        _selectedCity = isAr ? matchedGov.nameAr : matchedGov.nameEn;
+        _locationController.text = isAr ? result.nameAr : result.nameEn;
+        _mapGisPoint = '${result.lat.toStringAsFixed(4)}, ${result.lng.toStringAsFixed(4)}';
       });
     }
   }
@@ -224,12 +295,31 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         return;
       }
 
+      final isEg = _selectedCountryCode == 'EG';
       final landArea = double.tryParse(_landAreaController.text) ?? 5000.0;
-      final landCost = double.tryParse(_landCostController.text) ?? 15000000.0;
-      final constCost = double.tryParse(_constructionCostController.text) ?? 4200.0;
-      final revenue = double.tryParse(_expectedRevenueController.text) ?? 9800.0;
+      final landCost = double.tryParse(_landCostController.text) ?? (isEg ? 35000000.0 : 15000000.0);
+      final constCost = double.tryParse(_constructionCostController.text) ?? (isEg ? 22000.0 : 4200.0);
+      final revenue = double.tryParse(_expectedRevenueController.text) ?? (isEg ? 65000.0 : 9800.0);
       final far = double.tryParse(_farController.text) ?? 2.5;
       final efficiency = double.tryParse(_efficiencyController.text) ?? 85.0;
+
+      // Validate required sector timelines
+      for (final s in _selectedSectors) {
+        final ctrl = _getControllersFor(s);
+        final sectorName = _getSectorLabel(s, isAr);
+        if (ctrl.salesStart.text.trim().isEmpty ||
+            ctrl.salesEnd.text.trim().isEmpty ||
+            ctrl.constStart.text.trim().isEmpty ||
+            ctrl.constEnd.text.trim().isEmpty) {
+          AppSnackBar.showError(
+            context,
+            message: isAr
+                ? 'يرجى إدخال جميع تواريخ الجدول الزمني لقطاع $sectorName'
+                : 'Please enter all timeline dates for $sectorName',
+          );
+          return;
+        }
+      }
 
       // Build sector timelines
       final List<SectorTimeline> timelines = [];
@@ -238,16 +328,16 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
 
       for (final s in _selectedSectors) {
         final ctrl = _getControllersFor(s);
-        final sStart = int.tryParse(ctrl.salesStart.text) ?? 2026;
-        final sEnd = int.tryParse(ctrl.salesEnd.text) ?? 2029;
-        final cStart = int.tryParse(ctrl.constStart.text) ?? 2026;
-        final cEnd = int.tryParse(ctrl.constEnd.text) ?? 2028;
+        final sStart = int.tryParse(ctrl.salesStart.text.trim()) ?? 2026;
+        final sEnd = int.tryParse(ctrl.salesEnd.text.trim()) ?? 2029;
+        final cStart = int.tryParse(ctrl.constStart.text.trim()) ?? 2026;
+        final cEnd = int.tryParse(ctrl.constEnd.text.trim()) ?? 2028;
 
         if (cStart < minConstYear) minConstYear = cStart;
         if (cEnd > maxConstYear) maxConstYear = cEnd;
 
         timelines.add(SectorTimeline(
-          sector: s,
+          sector: _getSectorLabel(s, isAr),
           salesStartYear: sStart,
           salesEndYear: sEnd,
           constructionStartYear: cStart,
@@ -257,60 +347,52 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
 
       final months = ((maxConstYear - minConstYear + 1) * 12).clamp(12, 60);
 
-      String currency = 'SAR';
-      if (_selectedCountry.contains('الإمارات') || _selectedCountry.contains('Emirates')) {
-        currency = 'AED';
-      } else if (_selectedCountry.contains('مصر') || _selectedCountry.contains('Egypt')) {
-        currency = 'EGP';
-      } else if (_selectedCountry.contains('قطر') || _selectedCountry.contains('Qatar')) {
-        currency = 'QAR';
-      } else if (_selectedCountry.contains('الكويت') || _selectedCountry.contains('Kuwait')) {
-        currency = 'KWD';
-      } else if (_selectedCountry.contains('البحرين') || _selectedCountry.contains('Bahrain')) {
-        currency = 'BHD';
-      } else if (_selectedCountry.contains('عمان') || _selectedCountry.contains('Oman')) {
-        currency = 'OMR';
-      }
+      final selectedCountryMatch = _countryOptions.firstWhere(
+        (c) => c['code'] == _selectedCountryCode,
+        orElse: () => _countryOptions.first,
+      );
+      final currency = selectedCountryMatch['currency'] ?? 'SAR';
+      final countryName = isAr ? selectedCountryMatch['ar']! : selectedCountryMatch['en']!;
 
       final Map<String, double> percentages = {};
       for (final s in _selectedSectors) {
-        percentages[s] = double.tryParse(_sectorPercentageControllers[s]?.text.trim() ?? '') ?? 0.0;
+        percentages[_getSectorLabel(s, isAr)] = double.tryParse(_sectorPercentageControllers[s]?.text.trim() ?? '') ?? 0.0;
       }
 
       final study = FeasibilityStudy(
         id: 'prj_${DateTime.now().millisecondsSinceEpoch}',
         title: _projectNameController.text.trim().isNotEmpty
             ? _projectNameController.text.trim()
-            : (kDebugMode ? 'مشروع برج الأندلس' : 'مشروع عقاري جديد'),
+            : (isAr ? 'مشروع عقاري جديد' : 'New Real Estate Project'),
         developerName: _developerNameController.text.trim().isNotEmpty
             ? _developerNameController.text.trim()
-            : (kDebugMode ? 'mohamed hany' : ''),
-        assetType: _selectedSectors.isNotEmpty ? _selectedSectors.first : 'سكني',
-        selectedSectors: _selectedSectors.toList(),
+            : (kDebugMode ? (isAr ? 'محمد هاني' : 'Mohamed Hany') : ''),
+        assetType: _selectedSectors.isNotEmpty ? _getSectorLabel(_selectedSectors.first, isAr) : (isAr ? 'سكني' : 'Residential'),
+        selectedSectors: _selectedSectors.map((s) => _getSectorLabel(s, isAr)).toList(),
         sectorPercentages: percentages,
         sectorTimelines: timelines,
-        projectType: _selectedType,
-        country: _selectedCountry,
+        projectType: _getTypeLabel(_selectedTypeKey, isAr),
+        country: countryName,
         location: _locationController.text.trim().isNotEmpty
             ? _locationController.text.trim()
-            : '$_selectedCity, $_selectedCountry',
+            : '$_selectedCity, $countryName',
         mapLocation: _mapGisPoint,
-        landPaymentMode: _selectedLandPaymentModes.join(' + '),
-        landPaymentModes: _selectedLandPaymentModes.toList(),
-        revenueSharePct: _selectedLandPaymentModes.contains('حصة الإيرادات')
+        landPaymentMode: _selectedLandPaymentModes.map((k) => _getPaymentModeLabel(k, isAr)).join(' + '),
+        landPaymentModes: _selectedLandPaymentModes.map((k) => _getPaymentModeLabel(k, isAr)).toList(),
+        revenueSharePct: _selectedLandPaymentModes.contains('revenue_share')
             ? (double.tryParse(_revenueSharePctController.text) ?? 0.0)
             : 0.0,
-        inKindSharePct: _selectedLandPaymentModes.contains('حصة عينية')
+        inKindSharePct: _selectedLandPaymentModes.contains('inkind_share')
             ? (double.tryParse(_inKindSharePctController.text) ?? 0.0)
             : 0.0,
         landArea: landArea,
         far: far,
         efficiencyPct: efficiency,
-        landCost: _selectedLandPaymentModes.contains('دفع ثمن الأرض') ? landCost : 0.0,
-        landPricePerSqm: _selectedLandPaymentModes.contains('دفع ثمن الأرض')
+        landCost: _selectedLandPaymentModes.contains('land_payment') ? landCost : 0.0,
+        landPricePerSqm: _selectedLandPaymentModes.contains('land_payment')
             ? double.tryParse(_landPricePerSqmController.text)
             : null,
-        landPaymentYears: _selectedLandPaymentModes.contains('دفع ثمن الأرض')
+        landPaymentYears: _selectedLandPaymentModes.contains('land_payment')
             ? (int.tryParse(_landPaymentYearsController.text) ?? 0)
             : 0,
         constructionCostPerSqm: constCost,
@@ -626,13 +708,15 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
 
         // 3 Sector Pills Row
         Row(
-          children: _mainSectors.map((s) {
-            final isSel = _selectedSectors.contains(s);
+          children: _sectorsList.map((s) {
+            final key = s['key']!;
+            final isSel = _selectedSectors.contains(key);
+            final label = isAr ? s['ar']! : s['en']!;
             return Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: InkWell(
-                  onTap: () => _onToggleSector(s),
+                  onTap: () => _onToggleSector(key),
                   borderRadius: BorderRadius.circular(24),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
@@ -660,7 +744,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                           : null,
                     ),
                     child: Text(
-                      s,
+                      label,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13.5,
@@ -702,7 +786,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                           const SizedBox(width: 5),
                           Expanded(
                             child: Text(
-                              '$s - ${isAr ? 'النسبة' : 'Percentage'}',
+                              '${_getSectorLabel(s, isAr)} - ${isAr ? 'النسبة' : 'Percentage'}',
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 12,
@@ -793,11 +877,32 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         _fieldLabel(isAr ? 'النوع *' : 'Type *', isDark),
         const SizedBox(height: 6),
         _buildDropdownSelector(
-          value: _selectedType,
-          items: _typesList,
+          value: _selectedTypeKey,
+          items: _typeOptions.map((opt) {
+            final isSel = opt['key'] == _selectedTypeKey;
+            final label = isAr ? opt['ar']! : opt['en']!;
+            return DropdownMenuItem<String>(
+              value: opt['key'],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                      color: isDark ? AppColors.darkText : AppColors.lightText,
+                    ),
+                  ),
+                  if (isSel)
+                    const Icon(Icons.check_rounded, size: 18, color: Colors.white),
+                ],
+              ),
+            );
+          }).toList(),
           hint: isAr ? 'اختر النوع' : 'Select type',
           isDark: isDark,
-          onChanged: (v) => setState(() => _selectedType = v ?? _selectedType),
+          onChanged: (v) => setState(() => _selectedTypeKey = v ?? _selectedTypeKey),
         ),
         const SizedBox(height: 14),
 
@@ -833,17 +938,109 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         _fieldLabel(isAr ? 'البلد *' : 'Country *', isDark),
         const SizedBox(height: 6),
         _buildDropdownSelector(
-          value: _selectedCountry,
-          items: _countriesAr,
-          prefixIcon: Icons.language_rounded,
-          hint: isAr ? 'يرجى اختيار خيار' : 'Please select an option',
+          value: _selectedCountryCode,
+          items: _countryOptions.map((c) {
+            final isSel = c['code'] == _selectedCountryCode;
+            final label = isAr ? c['ar']! : c['en']!;
+            return DropdownMenuItem<String>(
+              value: c['code'],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.language_rounded, size: 18, color: AppColors.gold),
+                      const SizedBox(width: 8),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                          color: isDark ? AppColors.darkText : AppColors.lightText,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isSel)
+                    const Icon(Icons.check_rounded, size: 18, color: Colors.white),
+                ],
+              ),
+            );
+          }).toList(),
+          hint: isAr ? 'يرجى اختيار دولة' : 'Please select a country',
           isDark: isDark,
-          onChanged: (v) => setState(() => _selectedCountry = v ?? _selectedCountry),
+          onChanged: (v) {
+            if (v != null) {
+              setState(() {
+                _selectedCountryCode = v;
+                final defaultGov = LocationData.getDefaultGovernorate(v);
+                _selectedGovernorateKey = defaultGov.key;
+                _selectedCity = isAr ? defaultGov.nameAr : defaultGov.nameEn;
+                _mapGisPoint = '${defaultGov.defaultLat.toStringAsFixed(4)}, ${defaultGov.defaultLng.toStringAsFixed(4)}';
+                _locationController.text = isAr ? defaultGov.nameAr : defaultGov.nameEn;
+              });
+            }
+          },
+        ),
+        const SizedBox(height: 14),
+
+        // Governorate / Province (المحافظة / المنطقة)
+        _fieldLabel(
+          _selectedCountryCode == 'EG'
+              ? (isAr ? 'المحافظة *' : 'Governorate *')
+              : (isAr ? 'المنطقة *' : 'Region / Province *'),
+          isDark,
+        ),
+        const SizedBox(height: 6),
+        _buildDropdownSelector(
+          value: _selectedGovernorateKey,
+          items: LocationData.getGovernoratesForCountry(_selectedCountryCode).map((gov) {
+            final isSel = gov.key == _selectedGovernorateKey;
+            final label = isAr ? gov.nameAr : gov.nameEn;
+            return DropdownMenuItem<String>(
+              value: gov.key,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.location_city_rounded, size: 18, color: AppColors.gold),
+                      const SizedBox(width: 8),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                          color: isDark ? AppColors.darkText : AppColors.lightText,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isSel)
+                    const Icon(Icons.check_rounded, size: 18, color: Colors.white),
+                ],
+              ),
+            );
+          }).toList(),
+          hint: isAr ? 'يرجى اختيار المحافظة / المنطقة' : 'Please select a governorate / region',
+          isDark: isDark,
+          onChanged: (v) {
+            if (v != null) {
+              setState(() {
+                _selectedGovernorateKey = v;
+                final govList = LocationData.getGovernoratesForCountry(_selectedCountryCode);
+                final gov = govList.firstWhere((g) => g.key == v, orElse: () => govList.first);
+                _selectedCity = isAr ? gov.nameAr : gov.nameEn;
+                _mapGisPoint = '${gov.defaultLat.toStringAsFixed(4)}, ${gov.defaultLng.toStringAsFixed(4)}';
+                _locationController.text = isAr ? gov.nameAr : gov.nameEn;
+              });
+            }
+          },
         ),
         const SizedBox(height: 14),
 
         // Location / Map
-        _fieldLabel(isAr ? 'الموقع *' : 'Location *', isDark),
+        _fieldLabel(isAr ? 'تفاصيل الموقع والحي *' : 'District & Location Details *', isDark),
         const SizedBox(height: 6),
         Container(
           decoration: BoxDecoration(
@@ -867,7 +1064,9 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                         fontSize: 14,
                       ),
                       decoration: InputDecoration(
-                        hintText: isAr ? 'انقر لتحديد الموقع على الخريطة' : 'Click to select location on map',
+                        hintText: isAr
+                            ? 'أدخل اسم الحي أو تفاصيل الموقع أو اختر من الخريطة'
+                            : 'Enter district name or choose on map',
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                       ),
@@ -898,19 +1097,6 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   ),
                 ],
               ),
-              if (_mapGisPoint != null) ...[
-                Padding(
-                  padding: const EdgeInsets.only(left: 14, right: 14, bottom: 8),
-                  child: Text(
-                    isAr ? 'الإحداثيات: $_mapGisPoint' : 'Coordinates: $_mapGisPoint',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontFamily: 'monospace',
-                      color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -935,14 +1121,16 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         _sectionTitle(isAr ? 'تفاصيل الأرض' : 'Land Details', isDark),
         const SizedBox(height: 12),
 
-        // Land Payment Structure Pills (حصة عينية, حصة الإيرادات, دفع ثمن الأرض)
+        // Land Payment Structure Pills
         Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: _paymentModes.map((mode) {
-            final isSel = _selectedLandPaymentModes.contains(mode);
+          children: _paymentModeOptions.map((opt) {
+            final key = opt['key']!;
+            final isSel = _selectedLandPaymentModes.contains(key);
+            final label = isAr ? opt['ar']! : opt['en']!;
             return InkWell(
-              onTap: () => _onToggleLandPaymentMode(mode),
+              onTap: () => _onToggleLandPaymentMode(key),
               borderRadius: BorderRadius.circular(24),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -969,7 +1157,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                       : null,
                 ),
                 child: Text(
-                  mode,
+                  label,
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
@@ -985,11 +1173,11 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         const SizedBox(height: 16),
 
         // Dynamic Fields based on Selected Land Payment Modes
-        if (_selectedLandPaymentModes.contains('دفع ثمن الأرض')) ...[
+        if (_selectedLandPaymentModes.contains('land_payment')) ...[
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Field 1 (Right in RTL / First): تكلفة الأرض
+              // Field 1: تكلفة الأرض
               Expanded(
                 flex: 2,
                 child: Column(
@@ -1015,7 +1203,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
               ),
               const SizedBox(width: 10),
 
-              // Field 2 (Middle): سعر المتر
+              // Field 2: سعر المتر
               Expanded(
                 flex: 2,
                 child: Column(
@@ -1041,7 +1229,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
               ),
               const SizedBox(width: 10),
 
-              // Field 3 (Left in RTL): عدد السنوات
+              // Field 3: عدد السنوات
               Expanded(
                 flex: 1,
                 child: Column(
@@ -1061,13 +1249,13 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
           ),
         ],
 
-        if (_selectedLandPaymentModes.contains('دفع ثمن الأرض') &&
-            (_selectedLandPaymentModes.contains('حصة الإيرادات') ||
-             _selectedLandPaymentModes.contains('حصة عينية')))
+        if (_selectedLandPaymentModes.contains('land_payment') &&
+            (_selectedLandPaymentModes.contains('revenue_share') ||
+             _selectedLandPaymentModes.contains('inkind_share')))
           const SizedBox(height: 14),
 
-        if (_selectedLandPaymentModes.contains('حصة الإيرادات') &&
-            _selectedLandPaymentModes.contains('حصة عينية')) ...[
+        if (_selectedLandPaymentModes.contains('revenue_share') &&
+            _selectedLandPaymentModes.contains('inkind_share')) ...[
           Row(
             children: [
               Expanded(
@@ -1089,7 +1277,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _fieldLabel(isAr ? '% من مساحة البناء (حصة عينية)' : '% of BUA (In-Kind Share)', isDark),
+                    _fieldLabel(isAr ? '% من مساحة البناء' : '% of BUA (In-Kind Share)', isDark),
                     const SizedBox(height: 6),
                     CustomTextField(
                       controller: _inKindSharePctController,
@@ -1101,7 +1289,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
               ),
             ],
           ),
-        ] else if (_selectedLandPaymentModes.contains('حصة الإيرادات')) ...[
+        ] else if (_selectedLandPaymentModes.contains('revenue_share')) ...[
           _fieldLabel(isAr ? '% من إجمالي الإيرادات' : '% of Gross Revenue', isDark),
           const SizedBox(height: 6),
           CustomTextField(
@@ -1109,8 +1297,8 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
             hintText: isAr ? 'أدخل نسبة الإيرادات' : 'Enter revenue percentage',
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
-        ] else if (_selectedLandPaymentModes.contains('حصة عينية')) ...[
-          _fieldLabel(isAr ? '% من مساحة البناء (حصة عينية)' : '% of BUA (In-Kind Share)', isDark),
+        ] else if (_selectedLandPaymentModes.contains('inkind_share')) ...[
+          _fieldLabel(isAr ? '% من مساحة البناء' : '% of BUA (In-Kind Share)', isDark),
           const SizedBox(height: 6),
           CustomTextField(
             controller: _inKindSharePctController,
@@ -1118,87 +1306,14 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
         ],
-
-        const SizedBox(height: 24),
-
-        // Section: Construction & Pricing Parameters
-        _sectionTitle(isAr ? 'مواصفات التطوير والتكاليف' : 'Development Specs & Pricing', isDark),
-        const SizedBox(height: 14),
-
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _fieldLabel('FAR (معامل البناء) *', isDark),
-                  const SizedBox(height: 6),
-                  CustomTextField(
-                    controller: _farController,
-                    hintText: '2.5',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _fieldLabel(isAr ? 'كفاءة البيع GFA (%) *' : 'GFA Efficiency (%) *', isDark),
-                  const SizedBox(height: 6),
-                  CustomTextField(
-                    controller: _efficiencyController,
-                    hintText: '85',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _fieldLabel(isAr ? 'تكلفة البناء / م² *' : 'Cost / m² *', isDark),
-                  const SizedBox(height: 6),
-                  CustomTextField(
-                    controller: _constructionCostController,
-                    hintText: '4200',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _fieldLabel(isAr ? 'سعر البيع المتوقع / م² *' : 'Sale Rev / m² *', isDark),
-                  const SizedBox(height: 6),
-                  CustomTextField(
-                    controller: _expectedRevenueController,
-                    hintText: '9800',
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        const SizedBox(height: 16),
       ],
     );
   }
 
   Widget _buildSectorTimelineCard(String sector, bool isDark, bool isAr) {
     final ctrl = _getControllersFor(sector);
+    final sectorLabel = _getSectorLabel(sector, isAr);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
@@ -1213,7 +1328,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Sector Title Header (e.g. "سكني تواريخ", "تجاري تواريخ", "ضيافة تواريخ")
+          // Sector Title Header
           Row(
             children: [
               Container(
@@ -1226,7 +1341,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                isAr ? '$sector تواريخ' : '$sector Dates',
+                isAr ? 'تواريخ قطاع $sectorLabel' : '$sectorLabel Timeline',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -1245,7 +1360,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _fieldLabel(
-                      isAr ? '$sector سنة بدء المبيعات' : '$sector Sales Start',
+                      isAr ? 'سنة بدء مبيعات $sectorLabel *' : '$sectorLabel Sales Start *',
                       isDark,
                     ),
                     const SizedBox(height: 6),
@@ -1253,6 +1368,16 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                       controller: ctrl.salesStart,
                       hintText: 'YYYY',
                       keyboardType: TextInputType.number,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return isAr ? 'هذا الحقل مطلوب' : 'This field is required';
+                        }
+                        final y = int.tryParse(val.trim());
+                        if (y == null || y < 2000 || y > 2100) {
+                          return isAr ? 'سنة غير صحيحة' : 'Invalid year';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),
@@ -1263,7 +1388,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _fieldLabel(
-                      isAr ? '$sector سنة انتهاء المبيعات' : '$sector Sales End',
+                      isAr ? 'سنة انتهاء مبيعات $sectorLabel *' : '$sectorLabel Sales End *',
                       isDark,
                     ),
                     const SizedBox(height: 6),
@@ -1271,6 +1396,20 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                       controller: ctrl.salesEnd,
                       hintText: 'YYYY',
                       keyboardType: TextInputType.number,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return isAr ? 'هذا الحقل مطلوب' : 'This field is required';
+                        }
+                        final y = int.tryParse(val.trim());
+                        if (y == null || y < 2000 || y > 2100) {
+                          return isAr ? 'سنة غير صحيحة' : 'Invalid year';
+                        }
+                        final start = int.tryParse(ctrl.salesStart.text.trim());
+                        if (start != null && y < start) {
+                          return isAr ? 'يجب أن تكون ≥ سنة البدء' : 'Must be ≥ Start';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),
@@ -1287,7 +1426,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _fieldLabel(
-                      isAr ? '$sector سنة بدء البناء' : '$sector Const Start',
+                      isAr ? 'سنة بدء بناء $sectorLabel *' : '$sectorLabel Const Start *',
                       isDark,
                     ),
                     const SizedBox(height: 6),
@@ -1295,6 +1434,16 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                       controller: ctrl.constStart,
                       hintText: 'YYYY',
                       keyboardType: TextInputType.number,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return isAr ? 'هذا الحقل مطلوب' : 'This field is required';
+                        }
+                        final y = int.tryParse(val.trim());
+                        if (y == null || y < 2000 || y > 2100) {
+                          return isAr ? 'سنة غير صحيحة' : 'Invalid year';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),
@@ -1305,7 +1454,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _fieldLabel(
-                      isAr ? 'Construction end year $sector' : '$sector Const End',
+                      isAr ? 'سنة انتهاء بناء $sectorLabel *' : '$sectorLabel Const End *',
                       isDark,
                     ),
                     const SizedBox(height: 6),
@@ -1313,6 +1462,20 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                       controller: ctrl.constEnd,
                       hintText: 'YYYY',
                       keyboardType: TextInputType.number,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return isAr ? 'هذا الحقل مطلوب' : 'This field is required';
+                        }
+                        final y = int.tryParse(val.trim());
+                        if (y == null || y < 2000 || y > 2100) {
+                          return isAr ? 'سنة غير صحيحة' : 'Invalid year';
+                        }
+                        final start = int.tryParse(ctrl.constStart.text.trim());
+                        if (start != null && y < start) {
+                          return isAr ? 'يجب أن تكون ≥ سنة البدء' : 'Must be ≥ Start';
+                        }
+                        return null;
+                      },
                     ),
                   ],
                 ),
@@ -1349,13 +1512,14 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
   }
 
   Widget _buildDropdownSelector({
-    required String value,
-    required List<String> items,
+    required String? value,
+    required List<DropdownMenuItem<String>> items,
     required String hint,
     required bool isDark,
     required ValueChanged<String?> onChanged,
     IconData? prefixIcon,
   }) {
+    final validValue = items.any((item) => item.value == value) ? value : null;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
       decoration: BoxDecoration(
@@ -1367,7 +1531,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: items.contains(value) ? value : null,
+          value: validValue,
           hint: Row(
             children: [
               if (prefixIcon != null) ...[
@@ -1390,39 +1554,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
           ),
           dropdownColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
           borderRadius: BorderRadius.circular(12),
-          items: items.map((i) {
-            final isItemSel = i == value;
-            return DropdownMenuItem<String>(
-              value: i,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      if (prefixIcon != null) ...[
-                        Icon(prefixIcon, size: 18, color: AppColors.gold),
-                        const SizedBox(width: 8),
-                      ],
-                      Text(
-                        i,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: isItemSel ? FontWeight.w700 : FontWeight.w500,
-                          color: isDark ? AppColors.darkText : AppColors.lightText,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (isItemSel)
-                    const Icon(
-                      Icons.check_rounded,
-                      size: 18,
-                      color: Colors.white,
-                    ),
-                ],
-              ),
-            );
-          }).toList(),
+          items: items,
           onChanged: onChanged,
         ),
       ),

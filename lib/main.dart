@@ -6,8 +6,6 @@ import 'core/network/dio_client.dart';
 import 'core/services/preferences_service.dart';
 import 'cubits/auth/auth_cubit.dart';
 import 'cubits/auth/auth_state.dart';
-import 'cubits/calculator/calculator_cubit.dart';
-
 import 'cubits/locale/locale_cubit.dart';
 
 import 'cubits/market/market_cubit.dart';
@@ -52,7 +50,6 @@ class ValuateApp extends StatelessWidget {
           )..checkAuthStatus(),
         ),
 
-        BlocProvider(create: (_) => CalculatorCubit()),
         BlocProvider(
           create: (_) => ProjectsCubit(
             preferencesService: preferencesService,

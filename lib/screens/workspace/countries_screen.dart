@@ -37,7 +37,7 @@ class _CountriesScreenState extends State<CountriesScreen> {
 
   final List<CountryModel> _countries = [
     const CountryModel(
-      id: '3',
+      id: '1',
       nameAr: 'المملكة العربية السعودية',
       nameEn: 'Saudi Arabia',
       isoCode: 'SA',
@@ -45,52 +45,12 @@ class _CountriesScreenState extends State<CountriesScreen> {
       flagEmoji: '🇸🇦',
     ),
     const CountryModel(
-      id: '1',
-      nameAr: 'مصر',
+      id: '2',
+      nameAr: 'جمهورية مصر العربية',
       nameEn: 'Egypt',
-      isoCode: 'eg',
+      isoCode: 'EG',
       phoneCode: '+20',
       flagEmoji: '🇪🇬',
-    ),
-    const CountryModel(
-      id: '2',
-      nameAr: 'الإمارات العربية المتحدة',
-      nameEn: 'United Arab Emirates',
-      isoCode: 'AE',
-      phoneCode: '+971',
-      flagEmoji: '🇦🇪',
-    ),
-    const CountryModel(
-      id: '4',
-      nameAr: 'دولة قطر',
-      nameEn: 'Qatar',
-      isoCode: 'QA',
-      phoneCode: '+974',
-      flagEmoji: '🇶🇦',
-    ),
-    const CountryModel(
-      id: '5',
-      nameAr: 'دولة الكويت',
-      nameEn: 'Kuwait',
-      isoCode: 'KW',
-      phoneCode: '+965',
-      flagEmoji: '🇰🇼',
-    ),
-    const CountryModel(
-      id: '6',
-      nameAr: 'مملكة البحرين',
-      nameEn: 'Bahrain',
-      isoCode: 'BH',
-      phoneCode: '+973',
-      flagEmoji: '🇧🇭',
-    ),
-    const CountryModel(
-      id: '7',
-      nameAr: 'سلطنة عمان',
-      nameEn: 'Oman',
-      isoCode: 'OM',
-      phoneCode: '+968',
-      flagEmoji: '🇴🇲',
     ),
   ];
 
@@ -130,10 +90,11 @@ class _CountriesScreenState extends State<CountriesScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(
-            Icons.menu_rounded,
+            Icons.arrow_back_ios_new_rounded,
+            size: 18,
             color: isDark ? AppColors.darkText : AppColors.lightText,
           ),
-          onPressed: () => Scaffold.of(context).openDrawer(),
+          onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           isAr ? 'الدول' : 'Countries',

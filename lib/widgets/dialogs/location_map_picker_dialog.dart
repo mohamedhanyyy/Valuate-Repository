@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/reverse_geocoding_service.dart';
@@ -78,6 +79,7 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
   String _cityAr = 'الرياض';
   String _cityEn = 'Riyadh';
   bool _isResolving = false;
+  bool _isLocatingGps = false;
 
   @override
   void initState() {
@@ -87,11 +89,10 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
   }
 
   void _initCoordinates() {
-    // Determine initial coordinates from current country or location
     final country = widget.currentCountry.toLowerCase();
     final location = widget.currentLocation;
 
-    // Check if location string has coordinates like "29.8978, 30.9059" or "Location at 29.8978, 30.9059"
+    // Check if location string has coordinates like "29.8978, 30.9059"
     final coordsMatch = RegExp(r'([0-9]+\.[0-9]+)[\s,]+([0-9]+\.[0-9]+)').firstMatch(location);
     if (coordsMatch != null) {
       final parsedLat = double.tryParse(coordsMatch.group(1)!);
@@ -104,44 +105,14 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
     }
 
     if (country.contains('مصر') || country.contains('egypt')) {
-      _selectedPoint = const LatLng(29.897806, 30.905914); // 6th of October / Giza
+      _selectedPoint = const LatLng(30.0444, 31.2357); // Cairo
       _countryAr = 'جمهورية مصر العربية';
       _countryEn = 'Egypt';
-      _cityAr = 'الجيزة';
-      _cityEn = 'Giza';
-    } else if (country.contains('الإمارات') || country.contains('emirates') || country.contains('uae')) {
-      _selectedPoint = const LatLng(25.1972, 55.2744); // Dubai Downtown
-      _countryAr = 'الإمارات العربية المتحدة';
-      _countryEn = 'United Arab Emirates';
-      _cityAr = 'دبي';
-      _cityEn = 'Dubai';
-    } else if (country.contains('قطر') || country.contains('qatar')) {
-      _selectedPoint = const LatLng(25.2854, 51.5310);
-      _countryAr = 'دولة قطر';
-      _countryEn = 'Qatar';
-      _cityAr = 'الدوحة';
-      _cityEn = 'Doha';
-    } else if (country.contains('الكويت') || country.contains('kuwait')) {
-      _selectedPoint = const LatLng(29.3759, 47.9774);
-      _countryAr = 'دولة الكويت';
-      _countryEn = 'Kuwait';
-      _cityAr = 'الكويت';
-      _cityEn = 'Kuwait City';
-    } else if (country.contains('البحرين') || country.contains('bahrain')) {
-      _selectedPoint = const LatLng(26.2285, 50.5860);
-      _countryAr = 'مملكة البحرين';
-      _countryEn = 'Bahrain';
-      _cityAr = 'المنامة';
-      _cityEn = 'Manama';
-    } else if (country.contains('عمان') || country.contains('oman')) {
-      _selectedPoint = const LatLng(23.5880, 58.3829);
-      _countryAr = 'سلطنة عمان';
-      _countryEn = 'Oman';
-      _cityAr = 'مسقط';
-      _cityEn = 'Muscat';
+      _cityAr = 'القاهرة';
+      _cityEn = 'Cairo';
     } else {
       // Default: Saudi Arabia (Riyadh)
-      _selectedPoint = const LatLng(24.8412, 46.6562);
+      _selectedPoint = const LatLng(24.7136, 46.6753);
       _countryAr = 'المملكة العربية السعودية';
       _countryEn = 'Saudi Arabia';
       _cityAr = 'الرياض';
@@ -149,6 +120,46 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
     }
 
     _updateSelectedPoint(_selectedPoint, initial: true);
+
+    // If no explicit coordinates were passed, attempt to obtain user's current GPS position
+    _locateUserCurrent(animate: true);
+  }
+
+  Future<void> _locateUserCurrent({bool animate = true}) async {
+    if (_isLocatingGps) return;
+    setState(() => _isLocatingGps = true);
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) setState(() => _isLocatingGps = false);
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+        final pos = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 4),
+          ),
+        );
+        if (!mounted) return;
+        final userPoint = LatLng(pos.latitude, pos.longitude);
+        _updateSelectedPoint(userPoint);
+        if (animate) {
+          _mapController.move(userPoint, 15.0);
+        }
+      }
+    } catch (e) {
+      debugPrint('Locate user error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLocatingGps = false);
+      }
+    }
   }
 
   void _updateSelectedPoint(LatLng point, {bool initial = false}) {
@@ -242,7 +253,7 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Select Location On Map',
+                  isAr ? 'تحديد الموقع على الخريطة' : 'Select Location On Map',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -354,6 +365,20 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
                               child: Icon(Icons.remove, size: 18, color: Colors.black87),
                             ),
                           ),
+                          Container(height: 1, width: 24, color: Colors.black12),
+                          InkWell(
+                            onTap: () => _locateUserCurrent(animate: true),
+                            child: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: _isLocatingGps
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF2563EB)),
+                                    )
+                                  : const Icon(Icons.my_location_rounded, size: 18, color: Color(0xFF2563EB)),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -384,10 +409,10 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: isAr ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: isAr ? MainAxisAlignment.end : MainAxisAlignment.start,
                   children: [
                     if (_isResolving) ...[
                       const SizedBox(
@@ -402,8 +427,10 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
                     ],
                     Flexible(
                       child: Text(
-                        'Selected Address: ${_resolvedAddressAr.isNotEmpty ? _resolvedAddressAr : 'Location at ${_selectedPoint.latitude.toStringAsFixed(4)}, ${_selectedPoint.longitude.toStringAsFixed(4)}'}',
-                        textAlign: TextAlign.right,
+                        isAr
+                            ? 'العنوان المحدد: ${_resolvedAddressAr.isNotEmpty ? _resolvedAddressAr : 'الموقع عند ${_selectedPoint.latitude.toStringAsFixed(4)}, ${_selectedPoint.longitude.toStringAsFixed(4)}'}'
+                            : 'Selected Address: ${_resolvedAddressEn.isNotEmpty ? _resolvedAddressEn : 'Location at ${_selectedPoint.latitude.toStringAsFixed(4)}, ${_selectedPoint.longitude.toStringAsFixed(4)}'}',
+                        textAlign: isAr ? TextAlign.right : TextAlign.left,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -412,17 +439,6 @@ class _LocationMapPickerDialogState extends State<LocationMapPickerDialog> {
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'الإحداثيات: ${_selectedPoint.latitude.toStringAsFixed(6)} ,${_selectedPoint.longitude.toStringAsFixed(6)}',
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                  ),
                 ),
               ],
             ),

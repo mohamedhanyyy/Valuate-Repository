@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/services/pdf_export_service.dart';
-import '../../cubits/calculator/calculator_cubit.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/theme/theme_cubit.dart';
 import '../../models/feasibility_study.dart';
 import '../../widgets/charts/cashflow_bar_chart.dart';
 import '../../widgets/charts/cost_breakdown_pie.dart';
-import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/kpi_metric_tile.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/verdict_badge.dart';
@@ -146,7 +144,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           ),
           IconButton(
             icon: const Icon(Icons.fact_check_outlined, color: Color(0xFF2563EB)),
-            tooltip: isAr ? 'الافتراضات (Assumptions)' : 'Assumptions',
+            tooltip: isAr ? 'الافتراضات' : 'Assumptions',
             onPressed: () {
               Navigator.push(
                 context,
@@ -161,20 +159,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
             tooltip: isAr ? 'تصدير التقرير PDF' : 'Share PDF Dossier',
             onPressed: () {
               PdfExportService.sharePdf(context, study: _study, locale: locale);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.calculate_outlined, color: Color(0xFF2563EB)),
-            tooltip: isAr ? 'تحميل في الحاسبة' : 'Load in calculator',
-            onPressed: () {
-              context.read<CalculatorCubit>().loadStudy(_study);
-              AppSnackBar.showInfo(
-                context,
-                message: isAr
-                    ? 'تم تحميل المشروع في الحاسبة للتعديل'
-                    : 'Study loaded into calculator for simulation',
-              );
-              Navigator.pop(context);
             },
           ),
         ],
@@ -232,6 +216,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
             score: _study.feasibilityScore,
             locale: locale,
             isExpanded: true,
+            isPending: true,
           ),
           const SizedBox(height: 16),
 
@@ -243,7 +228,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 Expanded(
                   child: KpiMetricTile(
                     label: AppStrings.get('roi', locale: locale),
-                    value: '${_study.roiPct.toStringAsFixed(1)}%',
+                    value: '--',
                     icon: Icons.trending_up_rounded,
                     accentColor: const Color(0xFF10B981),
                     isHighlight: true,
@@ -253,7 +238,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 Expanded(
                   child: KpiMetricTile(
                     label: AppStrings.get('irr', locale: locale),
-                    value: '${_study.annualizedIrrPct.toStringAsFixed(1)}%',
+                    value: '--',
                     icon: Icons.percent_rounded,
                     accentColor: const Color(0xFF2563EB),
                   ),
@@ -269,7 +254,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 Expanded(
                   child: KpiMetricTile(
                     label: AppStrings.get('netProfit', locale: locale),
-                    value: _formatCurr(_study.netProfit),
+                    value: '--',
                     icon: Icons.account_balance_wallet_outlined,
                     accentColor: const Color(0xFF38BDF8),
                   ),
@@ -278,7 +263,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 Expanded(
                   child: KpiMetricTile(
                     label: AppStrings.get('equityMultiple', locale: locale),
-                    value: '${_study.equityMultiple.toStringAsFixed(2)}x',
+                    value: '--',
                     icon: Icons.multiline_chart_rounded,
                     accentColor: const Color(0xFF8B5CF6),
                   ),
@@ -290,7 +275,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
           // Project Profile & Boundary Card
           _buildCard(
-            title: isAr ? 'ملف وحدود المشروع (Project Profile)' : 'Project Profile & Boundary',
+            title: isAr ? 'ملف وحدود المشروع' : 'Project Profile & Boundary',
             icon: Icons.business_rounded,
             isDark: isDark,
             children: [
@@ -317,7 +302,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
           // Land Details & Economics Card
           _buildCard(
-            title: isAr ? 'اقتصاديات وهيكل الأرض (Land Structure)' : 'Land Economics & Structure',
+            title: isAr ? 'اقتصاديات وهيكل الأرض' : 'Land Economics & Structure',
             icon: Icons.landscape_rounded,
             isDark: isDark,
             children: [
@@ -343,7 +328,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               _divider(isDark),
               _specRow(AppStrings.get('bua', locale: locale), '${_study.bua.toStringAsFixed(0)} m²', isDark),
               _divider(isDark),
-              _specRow(AppStrings.get('breakeven', locale: locale), '${_study.breakevenPerSqm.toStringAsFixed(0)} ${_study.currency}/m²', isDark),
+              _specRow(AppStrings.get('breakeven', locale: locale), '--', isDark),
             ],
           ),
           const SizedBox(height: 16),
@@ -351,7 +336,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           // Sector Allocations Card
           if (_study.sectorPercentages.isNotEmpty)
             _buildCard(
-              title: isAr ? 'توزيع القطاعات (100% Sector Allocation)' : 'Sector Allocation (100%)',
+              title: isAr ? 'توزيع القطاعات (100%)' : 'Sector Allocation (100%)',
               icon: Icons.pie_chart_outline_rounded,
               isDark: isDark,
               children: [
@@ -394,7 +379,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           // Products Catalog
           if (_study.products.isNotEmpty)
             _buildCard(
-              title: isAr ? 'المنتجات المختارة والمواصفات (Products Mix)' : 'Configured Products & Specifications',
+              title: isAr ? 'المنتجات المختارة والمواصفات' : 'Configured Products & Specifications',
               icon: Icons.inventory_2_outlined,
               isDark: isDark,
               children: [
@@ -488,7 +473,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
           // Run-off table
           _buildCard(
-            title: isAr ? 'جدول تدفقات تكاليف البناء (Hard Costs Run Off)' : 'Construction Run-Off Table',
+            title: isAr ? 'جدول تدفقات تكاليف البناء' : 'Construction Run-Off Table',
             icon: Icons.table_chart_rounded,
             isDark: isDark,
             children: [
@@ -587,7 +572,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 Expanded(
                   child: Text(
                     isAr
-                        ? 'معدل البيع التدريجي السنوي (Sales Trend %) ومعدل نمو الأسعار (Price Growth %) والإيرادات المحصلة.'
+                        ? 'معدل البيع التدريجي السنوي ومعدل نمو الأسعار والإيرادات المحصلة.'
                         : 'Phased sales distribution, price appreciation, and annual collected off-plan revenue.',
                     style: TextStyle(
                       fontSize: 13,
@@ -602,7 +587,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           const SizedBox(height: 16),
 
           _buildCard(
-            title: isAr ? 'جدول تدفقات المبيعات (Sales Run-Off Table)' : 'Sales Run-Off Table',
+            title: isAr ? 'جدول تدفقات المبيعات' : 'Sales Run-Off Table',
             icon: Icons.analytics_outlined,
             isDark: isDark,
             children: [
@@ -662,7 +647,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildCard(
-            title: isAr ? 'تفاصيل التكاليف غير المباشرة (Soft Costs & Contingencies)' : 'Soft Costs & Phasing',
+            title: isAr ? 'تفاصيل التكاليف غير المباشرة والطوارئ' : 'Soft Costs & Phasing',
             icon: Icons.account_balance_outlined,
             isDark: isDark,
             children: [
@@ -734,7 +719,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
           // Consolidated Table (Slide 8)
           _buildCard(
-            title: isAr ? 'جدول التدفق النقدي الموحد (Consolidated Cash Flow Table)' : 'Consolidated Cash Flow Table',
+            title: isAr ? 'جدول التدفق النقدي الموحد' : 'Consolidated Cash Flow Table',
             icon: Icons.table_view_rounded,
             isDark: isDark,
             children: [
@@ -754,7 +739,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                     DataRow(
                       color: WidgetStateProperty.all(const Color(0xFF059669).withValues(alpha: 0.1)),
                       cells: [
-                        DataCell(Text(isAr ? '1. المقبوضات النقدية (Cash In)' : '1. Total Cash In', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF059669)))),
+                        DataCell(Text(isAr ? '1. المقبوضات النقدية' : '1. Total Cash In', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF059669)))),
                         ...cfList.map((_) => const DataCell(Text(''))),
                         const DataCell(Text('')),
                       ],
@@ -790,7 +775,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                     DataRow(
                       color: WidgetStateProperty.all(const Color(0xFFDC2626).withValues(alpha: 0.1)),
                       cells: [
-                        DataCell(Text(isAr ? '2. المدفوعات النقدية (Cash Out)' : '2. Total Cash Out', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFDC2626)))),
+                        DataCell(Text(isAr ? '2. المدفوعات النقدية' : '2. Total Cash Out', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFDC2626)))),
                         ...cfList.map((_) => const DataCell(Text(''))),
                         const DataCell(Text('')),
                       ],
@@ -826,7 +811,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                     DataRow(
                       color: WidgetStateProperty.all(isDark ? const Color(0xFF131B33) : const Color(0xFFF1F5F9)),
                       cells: [
-                        DataCell(Text(isAr ? 'صافي التدفق النقدي (Net Cash Flow)' : 'Net Cash Flow', style: const TextStyle(fontWeight: FontWeight.w800))),
+                        DataCell(Text(isAr ? 'صافي التدفق النقدي' : 'Net Cash Flow', style: const TextStyle(fontWeight: FontWeight.w800))),
                         ...cfList.map((cf) => DataCell(
                           Text(
                             _formatCurr(cf.netCashFlow),
@@ -848,7 +833,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                     // Cumulative Cash Flow
                     DataRow(
                       cells: [
-                        DataCell(Text(isAr ? 'التدفق التراكمي (Cumulative)' : 'Cumulative Cash Flow', style: const TextStyle(fontWeight: FontWeight.w800))),
+                        DataCell(Text(isAr ? 'التدفق النقدي التراكمي' : 'Cumulative Cash Flow', style: const TextStyle(fontWeight: FontWeight.w800))),
                         ...cfList.map((cf) => DataCell(
                           Text(
                             _formatCurr(cf.cumulativeCashFlow),
@@ -921,8 +906,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                       ),
                       child: Text(
                         isGo
-                            ? (isAr ? 'القرار: انطلاق (GO)' : 'DECISION: GO')
-                            : (isAr ? 'القرار: توقف (NO-GO)' : 'DECISION: NO-GO'),
+                            ? (isAr ? 'القرار: انطلاق' : 'DECISION: GO')
+                            : (isAr ? 'القرار: توقف' : 'DECISION: NO-GO'),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
@@ -943,7 +928,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 Text(
                   isGo
                       ? (isAr
-                          ? 'المشروع يحقق معايير الاستثمار: صافي القيمة الحالية موجبة (NPV ≥ 0) ومعدل العائد الداخلي (IRR) أعلى من العائد المستهدف (${_study.hurdleRate.toStringAsFixed(0)}%).'
+                          ? 'المشروع يحقق معايير الاستثمار: صافي القيمة الحالية موجبة ومعدل العائد الداخلي أعلى من العائد المستهدف (${_study.hurdleRate.toStringAsFixed(0)}%).'
                           : 'Project satisfies investment hurdle: Equity NPV is positive (NPV ≥ 0) and IRR meets or exceeds hurdle rate (${_study.hurdleRate.toStringAsFixed(0)}%).')
                       : (isAr
                           ? 'المشروع لا يحقق المعايير: العائد الداخلي أقل من العائد المستهدف (${_study.hurdleRate.toStringAsFixed(0)}%) أو القيمة الحالية سالبة.'
@@ -965,7 +950,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                   ),
                   child: Text(
                     isAr
-                        ? 'قاعدة القرار: GO إذا كان NPV ≥ 0 و IRR ≥ ${_study.hurdleRate.toStringAsFixed(0)}% | NO-GO إذا كان NPV < 0 أو IRR < ${_study.hurdleRate.toStringAsFixed(0)}%'
+                        ? 'قاعدة القرار: انطلاق إذا كان صافي القيمة الحالية ≥ 0 ومعدل العائد الداخلي ≥ ${_study.hurdleRate.toStringAsFixed(0)}% | توقف إذا كان صافي القيمة الحالية < 0 أو معدل العائد الداخلي < ${_study.hurdleRate.toStringAsFixed(0)}%'
                         : 'MVP Working Rule: GO: NPV ≥ 0 AND IRR ≥ ${_study.hurdleRate.toStringAsFixed(0)}% | NO-GO: NPV < 0 OR IRR < ${_study.hurdleRate.toStringAsFixed(0)}%',
                     style: TextStyle(
                       fontSize: 11.5,
@@ -981,54 +966,54 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
           // Return Metrics Grid (Slide 9)
           _buildCard(
-            title: isAr ? 'المؤشرات المالية الرئيسية (Return Metrics)' : 'Key Return Metrics',
+            title: isAr ? 'المؤشرات المالية الرئيسية' : 'Key Return Metrics',
             icon: Icons.trending_up_rounded,
             isDark: isDark,
             children: [
-              _specRow(isAr ? 'معدل العائد الداخلي على حقوق الملكية (Equity IRR)' : 'Equity IRR', '${_study.annualizedIrrPct.toStringAsFixed(1)}%', isDark),
+              _specRow(isAr ? 'معدل العائد الداخلي على حقوق الملكية' : 'Equity IRR', '--', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'معدل العائد المستهدف (Hurdle Rate)' : 'Hurdle Rate Benchmark', '${_study.hurdleRate.toStringAsFixed(1)}%', isDark),
+              _specRow(isAr ? 'معدل العائد المستهدف' : 'Hurdle Rate Benchmark', '${_study.hurdleRate.toStringAsFixed(1)}%', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'فترة استرداد رأس المال (Payback Period)' : 'Payback Period', '${_study.paybackPeriodYears.toStringAsFixed(1)} ${isAr ? 'سنوات' : 'years'}', isDark),
+              _specRow(isAr ? 'فترة استرداد رأس المال' : 'Payback Period', '--', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'صافي القيمة الحالية لحقوق الملكية (Equity NPV)' : 'Equity NPV', _formatCurr(_study.equityNpv()), isDark),
+              _specRow(isAr ? 'صافي القيمة الحالية لحقوق الملكية' : 'Equity NPV', '--', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'هامش الربح (Profit Margin)' : 'Profit Margin', '${_study.profitMarginPct.toStringAsFixed(1)}%', isDark),
+              _specRow(isAr ? 'هامش الربح' : 'Profit Margin', '--', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'العائد على التطوير (ROD)' : 'Return on Development (ROD)', '${_study.rodPct.toStringAsFixed(1)}%', isDark),
+              _specRow(isAr ? 'العائد على التطوير' : 'Return on Development (ROD)', '--', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'مضاعف حقوق الملكية (Equity Multiple)' : 'Equity Multiple', '${_study.equityMultiple.toStringAsFixed(2)}x', isDark),
+              _specRow(isAr ? 'مضاعف حقوق الملكية' : 'Equity Multiple', '--', isDark),
             ],
           ),
           const SizedBox(height: 18),
 
           // Property Stats (SQM Breakdown) (Slide 9)
           _buildCard(
-            title: isAr ? 'إحصائيات العقار والمساحات (Property Stats - SQM)' : 'Property Stats (SQM Breakdown)',
+            title: isAr ? 'إحصائيات العقار والمساحات' : 'Property Stats (SQM Breakdown)',
             icon: Icons.square_foot_rounded,
             isDark: isDark,
             children: [
               _specRow(isAr ? 'مساحة الأرض الإجمالية' : 'Total Land Area', '${_study.landArea.toStringAsFixed(0)} m²', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'إجمالي المساحة البنائية (BUA)' : 'Total BUA', '${_study.bua.toStringAsFixed(0)} m²', isDark),
+              _specRow(isAr ? 'إجمالي المساحة البنائية' : 'Total BUA', '${_study.bua.toStringAsFixed(0)} m²', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'المساحة المبنية الطابقية (GFA)' : 'Gross Floor Area (GFA)', '${_study.gfa.toStringAsFixed(0)} m²', isDark),
+              _specRow(isAr ? 'المساحة المبنية الطابقية' : 'Gross Floor Area (GFA)', '${_study.gfa.toStringAsFixed(0)} m²', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'معامل البناء (FAR)' : 'Floor Area Ratio (FAR)', '${_study.far.toStringAsFixed(1)}x', isDark),
+              _specRow(isAr ? 'معامل البناء' : 'Floor Area Ratio (FAR)', '${_study.far.toStringAsFixed(1)}x', isDark),
               _divider(isDark),
-              _specRow(isAr ? 'سعر التعادل للمتر' : 'Breakeven / m²', '${_study.breakevenPerSqm.toStringAsFixed(0)} ${_study.currency}/m²', isDark),
+              _specRow(isAr ? 'سعر التعادل للمتر' : 'Breakeven / m²', '--', isDark),
             ],
           ),
           const SizedBox(height: 18),
 
           // Confirmation Checklist before Sign-Off (Slide 9)
           _buildCard(
-            title: isAr ? 'قائمة التحقق قبل الاعتماد (Confirmation Checklist)' : 'Pre-Sign-Off Confirmation Checklist',
+            title: isAr ? 'قائمة التحقق قبل الاعتماد' : 'Pre-Sign-Off Confirmation Checklist',
             icon: Icons.checklist_rounded,
             isDark: isDark,
             children: [
               _buildCheckTile(
-                title: isAr ? 'العائد (Return)' : 'Return Requirement',
+                title: isAr ? 'متطلب العائد' : 'Return Requirement',
                 subtitle: isAr
                     ? 'تحقيق معدل العائد الداخلي لحقوق الملكية أعلى من المعدل المستهدف (${_study.hurdleRate.toStringAsFixed(0)}%).'
                     : 'Equity IRR exceeds hurdle rate (${_study.hurdleRate.toStringAsFixed(0)}%).',
@@ -1038,7 +1023,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               ),
               _divider(isDark),
               _buildCheckTile(
-                title: isAr ? 'السيولة (Liquidity)' : 'Liquidity & Cash Buffer',
+                title: isAr ? 'السيولة والاحتياطي النقدي' : 'Liquidity & Cash Buffer',
                 subtitle: isAr
                     ? 'اختبار فترات التدفق النقدي والتأكد من إيجابية التدفقات التراكمية.'
                     : 'Phased cash flow stress-tested; positive cumulative reserves.',
@@ -1048,9 +1033,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               ),
               _divider(isDark),
               _buildCheckTile(
-                title: isAr ? 'المرونة (Resilience)' : 'Resilience & Buffers',
+                title: isAr ? 'المرونة ومخصصات الطوارئ' : 'Resilience & Buffers',
                 subtitle: isAr
-                    ? 'تضمين منحنى S-Curve ومخصصات طوارئ لتغطية أي تأخير في التنفيذ.'
+                    ? 'تضمين منحنى التوزيع السنوي ومخصصات طوارئ لتغطية أي تأخير في التنفيذ.'
                     : 'S-Curve phasing and contingency allocations configured.',
                 value: _chkResilience,
                 onChanged: (v) => setState(() => _chkResilience = v ?? false),
@@ -1058,7 +1043,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               ),
               _divider(isDark),
               _buildCheckTile(
-                title: isAr ? 'المدخلات (Inputs)' : 'Inputs & Benchmark Accuracy',
+                title: isAr ? 'دقة المدخلات والمقارنات' : 'Inputs & Benchmark Accuracy',
                 subtitle: isAr
                     ? 'التحقق من أسعار المتر ومزيج المنتجات ومقارنتها بمعايير السوق.'
                     : 'Unit pricing and product mix cross-referenced with market data.',
@@ -1072,34 +1057,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
           // Action Buttons
           PrimaryButton(
-            text: isAr ? 'تصدير التقرير الرسمي المعتمد (PDF)' : 'Export Official Signed PDF Report',
+            text: isAr ? 'تصدير التقرير الرسمي المعتمد PDF' : 'Export Official Signed PDF Report',
             icon: Icons.picture_as_pdf_outlined,
             backgroundColor: const Color(0xFF2563EB),
             onPressed: () {
               PdfExportService.sharePdf(context, study: _study, locale: locale);
             },
           ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            icon: const Icon(Icons.tune_rounded, color: Color(0xFF2563EB)),
-            label: Text(
-              isAr ? 'تعديل الافتراضات والمؤشرات' : 'Edit Assumptions & Metrics',
-              style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF2563EB)),
-            ),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              side: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ProjectAssumptionsScreen(study: _study),
-                ),
-              );
-            },
-          ),
+
           const SizedBox(height: 24),
         ],
       ),

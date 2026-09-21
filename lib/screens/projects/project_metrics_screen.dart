@@ -26,7 +26,44 @@ class _ProjectMetricsScreenState extends State<ProjectMetricsScreen> {
   late FeasibilityStudy _study;
   late List<ProjectProduct> _availableProducts;
   final List<ProjectProduct> _selectedProducts = [];
-  String _selectedSectorFilter = 'الكل';
+  String _selectedSectorFilter = 'all';
+
+  String _canonicalizeSectorToDisplay(String s, bool isAr) {
+    final lower = s.toLowerCase();
+    if (s == 'all' || s == 'الكل' || lower == 'all') {
+      return isAr ? 'الكل' : 'All';
+    }
+    if (lower.contains('res') || lower.contains('سكني')) {
+      return isAr ? 'سكني' : 'Residential';
+    }
+    if (lower.contains('comm') || lower.contains('تجاري')) {
+      return isAr ? 'تجاري' : 'Commercial';
+    }
+    if (lower.contains('hosp') || lower.contains('ضيافة')) {
+      return isAr ? 'ضيافة' : 'Hospitality';
+    }
+    return s;
+  }
+
+  bool _sectorsMatch(String productSector, String filterSector) {
+    final normFilter = filterSector.toLowerCase();
+    if (normFilter == 'all' || filterSector == 'الكل' || normFilter == 'الكل') return true;
+    final normProd = productSector.toLowerCase();
+    if (normProd == normFilter) return true;
+    if ((normProd.contains('res') || normProd.contains('سكني')) &&
+        (normFilter.contains('res') || normFilter.contains('سكني'))) {
+      return true;
+    }
+    if ((normProd.contains('comm') || normProd.contains('تجاري')) &&
+        (normFilter.contains('comm') || normFilter.contains('تجاري'))) {
+      return true;
+    }
+    if ((normProd.contains('hosp') || normProd.contains('ضيافة')) &&
+        (normFilter.contains('hosp') || normFilter.contains('ضيافة'))) {
+      return true;
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -49,19 +86,20 @@ class _ProjectMetricsScreenState extends State<ProjectMetricsScreen> {
   }
 
   List<ProjectProduct> get _filteredProducts {
-    if (_selectedSectorFilter == 'الكل' || _selectedSectorFilter == 'All') {
+    if (_selectedSectorFilter == 'all' || _selectedSectorFilter == 'الكل' || _selectedSectorFilter == 'All') {
       return _availableProducts;
     }
     return _availableProducts
-        .where((p) => p.sector == _selectedSectorFilter)
+        .where((p) => _sectorsMatch(p.sector, _selectedSectorFilter))
         .toList();
   }
 
-  List<String> get _sectorFilters {
+  List<String> _getSectorFilters(bool isAr) {
     final sectors = _study.selectedSectors.isNotEmpty
         ? _study.selectedSectors
         : [_study.assetType];
-    return ['الكل', ...sectors];
+    final localizedSectors = sectors.map((s) => _canonicalizeSectorToDisplay(s, isAr)).toSet().toList();
+    return [isAr ? 'الكل' : 'All', ...localizedSectors];
   }
 
   void _openProductDialog(ProjectProduct templateProduct) async {
@@ -333,8 +371,11 @@ class _ProjectMetricsScreenState extends State<ProjectMetricsScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 alignment: WrapAlignment.start,
-                children: _sectorFilters.map((sector) {
-                  final isSel = _selectedSectorFilter == sector;
+                children: _getSectorFilters(isAr).map((sector) {
+                  final isSel = _selectedSectorFilter == sector ||
+                      ((_selectedSectorFilter == 'all' || _selectedSectorFilter == 'الكل' || _selectedSectorFilter == 'All') &&
+                          (sector == 'الكل' || sector == 'All')) ||
+                      _sectorsMatch(sector, _selectedSectorFilter);
                   return InkWell(
                     onTap: () => setState(() => _selectedSectorFilter = sector),
                     borderRadius: BorderRadius.circular(24),
@@ -582,7 +623,7 @@ class _ProjectMetricsScreenState extends State<ProjectMetricsScreen> {
                   itemCount: _selectedProducts.length,
                   separatorBuilder: (context, index) => const SizedBox(height: 10),
                   itemBuilder: (context, index) =>
-                      _buildSelectedProductCard(_selectedProducts[index], isDark),
+                      _buildSelectedProductCard(_selectedProducts[index], isDark, isAr),
                 ),
             ],
           ),
@@ -639,7 +680,7 @@ class _ProjectMetricsScreenState extends State<ProjectMetricsScreen> {
     );
   }
 
-  Widget _buildSelectedProductCard(ProjectProduct p, bool isDark) {
+  Widget _buildSelectedProductCard(ProjectProduct p, bool isDark, bool isAr) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -665,7 +706,7 @@ class _ProjectMetricsScreenState extends State<ProjectMetricsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${p.sector} • ${p.productMixPct.toStringAsFixed(0)}% • ${p.bua.toStringAsFixed(0)} m²',
+                  '${_canonicalizeSectorToDisplay(p.sector, isAr)} • ${p.productMixPct.toStringAsFixed(0)}% • ${p.bua.toStringAsFixed(0)} m²',
                   style: TextStyle(
                     fontSize: 11.5,
                     color: isDark ? Colors.white60 : AppColors.lightTextMuted,
@@ -905,7 +946,7 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                           children: [
                             Expanded(
                               child: _buildField(
-                                label: 'Product-Mix %',
+                                label: isAr ? 'نسبة مزيج المنتجات (%)' : 'Product-Mix %',
                                 hint: isAr ? 'أدخل الوزن' : 'Enter weight',
                                 controller: _productMixController,
                                 isDark: isDark,
@@ -914,8 +955,8 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildField(
-                                label: 'Plot Area %',
-                                hint: isAr ? 'أدخل نسبة المساحة القابلة للبناء' : 'Enter plot area %',
+                                label: isAr ? 'نسبة مساحة القطعة (%)' : 'Plot Area %',
+                                hint: isAr ? 'أدخل نسبة المساحة' : 'Enter plot area %',
                                 controller: _plotAreaPctController,
                                 isDark: isDark,
                               ),
@@ -938,7 +979,7 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildField(
-                                label: isAr ? 'مساحة الأرض' : 'Land Area',
+                                label: isAr ? 'مساحة الأرض (م²)' : 'Land Area (m²)',
                                 hint: isAr ? 'أدخل مساحة الأرض' : 'Enter land area',
                                 controller: _landAreaController,
                                 isDark: isDark,
@@ -953,8 +994,8 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                           children: [
                             Expanded(
                               child: _buildField(
-                                label: '%FP',
-                                hint: isAr ? 'أدخل نسبة FP' : 'Enter %FP',
+                                label: isAr ? 'نسبة البصمة الإنشائية (%)' : 'Footprint %',
+                                hint: isAr ? 'أدخل نسبة البصمة' : 'Enter % footprint',
                                 controller: _fpPctController,
                                 isDark: isDark,
                               ),
@@ -962,8 +1003,8 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildField(
-                                label: 'FP',
-                                hint: isAr ? 'أدخل FP' : 'Enter FP',
+                                label: isAr ? 'مساحة البصمة الإنشائية (م²)' : 'Footprint Area (m²)',
+                                hint: isAr ? 'أدخل مساحة البصمة' : 'Enter footprint area',
                                 controller: _fpAreaController,
                                 isDark: isDark,
                               ),
@@ -1001,7 +1042,7 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                           children: [
                             Expanded(
                               child: _buildField(
-                                label: isAr ? 'كفاءة المرافق %' : 'Utility Cap Rate %',
+                                label: isAr ? 'كفاءة المرافق (%)' : 'Utility Cap Rate %',
                                 hint: '25',
                                 controller: _utilityCapRateController,
                                 isDark: isDark,
@@ -1041,21 +1082,21 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                                           DropdownMenuItem(
                                             value: 'Fully finished',
                                             child: Text(
-                                              isAr ? 'تشطيب كامل (Fully finished)' : 'Fully finished',
+                                              isAr ? 'تشطيب كامل' : 'Fully finished',
                                               style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white : Colors.black87),
                                             ),
                                           ),
                                           DropdownMenuItem(
                                             value: 'Core & Shell',
                                             child: Text(
-                                              isAr ? 'خرسانة وطوب (Core & Shell)' : 'Core & Shell',
+                                              isAr ? 'بدون تشطيب (عظم)' : 'Core & Shell',
                                               style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white : Colors.black87),
                                             ),
                                           ),
                                           DropdownMenuItem(
                                             value: 'Semi finished',
                                             child: Text(
-                                              isAr ? 'نصف تشطيب (Semi finished)' : 'Semi finished',
+                                              isAr ? 'نصف تشطيب' : 'Semi finished',
                                               style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white : Colors.black87),
                                             ),
                                           ),
@@ -1078,8 +1119,8 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                           children: [
                             Expanded(
                               child: _buildField(
-                                label: 'BUA',
-                                hint: 'Enter bua',
+                                label: isAr ? 'مساحة البناء الإجمالية (م²)' : 'Gross Built-up Area (BUA)',
+                                hint: isAr ? 'أدخل مساحة البناء' : 'Enter BUA',
                                 controller: _buaController,
                                 isDark: isDark,
                               ),
@@ -1103,7 +1144,7 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                           children: [
                             Expanded(
                               child: _buildField(
-                                label: 'Price Rate',
+                                label: isAr ? 'سعر المتر المربع' : 'Price / m²',
                                 hint: isAr ? 'أدخل سعر البيع' : 'Price rate',
                                 controller: _priceRateController,
                                 isDark: isDark,
@@ -1112,7 +1153,7 @@ class _ProductDetailsDialogState extends State<_ProductDetailsDialog> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildField(
-                                label: 'Rental Rate',
+                                label: isAr ? 'سعر الإيجار / م²' : 'Rental Rate / m²',
                                 hint: isAr ? 'أدخل سعر الإيجار' : 'Rental rate',
                                 controller: _rentalRateController,
                                 isDark: isDark,

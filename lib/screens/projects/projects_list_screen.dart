@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/constants/app_strings.dart';
 import '../../core/services/pdf_export_service.dart';
-import '../../cubits/calculator/calculator_cubit.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/projects/projects_cubit.dart';
 import '../../cubits/projects/projects_state.dart';
 import '../../cubits/theme/theme_cubit.dart';
 import '../../models/feasibility_study.dart';
-import '../../widgets/animations/fade_slide_entrance.dart';
+
 import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/kpi_metric_tile.dart';
 import '../workspace/create_project_wizard_screen.dart';
@@ -17,9 +15,10 @@ import 'project_detail_screen.dart';
 import 'project_metrics_screen.dart';
 
 class ProjectsListScreen extends StatefulWidget {
+  final Widget? drawer;
   final Function(int)? onNavigateTab;
 
-  const ProjectsListScreen({super.key, this.onNavigateTab});
+  const ProjectsListScreen({super.key, this.drawer, this.onNavigateTab});
 
   @override
   State<ProjectsListScreen> createState() => _ProjectsListScreenState();
@@ -59,9 +58,19 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0A0E1A) : const Color(0xFFF8FAFC),
+      drawer: widget.drawer,
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF10172D) : Colors.white,
         elevation: 0,
+        leading: widget.drawer != null
+            ? Builder(
+                builder: (ctx) => IconButton(
+                  icon: const Icon(Icons.menu_rounded, size: 26),
+                  tooltip: isAr ? 'القائمة الرئيسية' : 'Menu',
+                  onPressed: () => Scaffold.of(ctx).openDrawer(),
+                ),
+              )
+            : null,
         title: Text(
           isAr ? 'المشاريع ودراسات الجدوى' : 'Projects & Studies',
           style: TextStyle(
@@ -70,23 +79,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             color: isDark ? Colors.white : const Color(0xFF1E2547),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded, color: Color(0xFF2563EB), size: 24),
-            tooltip: isAr ? 'إنشاء مشروع جديد' : 'Create New Project',
-            onPressed: _openCreateProjectWizard,
-          ),
-          IconButton(
-            icon: const Icon(Icons.calculate_outlined, color: Color(0xFF2563EB), size: 24),
-            tooltip: AppStrings.get('newStudy', locale: locale),
-            onPressed: () {
-              context.read<CalculatorCubit>().resetToDefaults();
-              if (widget.onNavigateTab != null) {
-                widget.onNavigateTab!(1); // Go to calculator tab
-              }
-            },
-          ),
-        ],
+
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openCreateProjectWizard,
@@ -111,58 +104,55 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             return Column(
               children: [
                 // Search Bar
-                FadeSlideEntrance(
-                  duration: const Duration(milliseconds: 450),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: (val) {
-                        context.read<ProjectsCubit>().searchProjects(val);
-                      },
-                      onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF1E2547),
-                        fontSize: 14,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) {
+                      context.read<ProjectsCubit>().searchProjects(val);
+                    },
+                    onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF1E2547),
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: isAr
+                          ? 'بحث عن مشروع، مطور أو موقع...'
+                          : 'Search project, developer or location...',
+                      filled: true,
+                      fillColor: isDark ? const Color(0xFF10172D) : Colors.white,
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        size: 20,
+                        color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
                       ),
-                      decoration: InputDecoration(
-                        hintText: isAr
-                            ? 'بحث عن مشروع، مطور أو موقع...'
-                            : 'Search project, developer or location...',
-                        filled: true,
-                        fillColor: isDark ? const Color(0xFF10172D) : Colors.white,
-                        prefixIcon: Icon(
-                          Icons.search_rounded,
-                          size: 20,
-                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                context.read<ProjectsCubit>().searchProjects('');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? const Color(0xFF1E284A) : const Color(0xFFE2E8F0),
                         ),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear, size: 18),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  context.read<ProjectsCubit>().searchProjects('');
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: isDark ? const Color(0xFF1E284A) : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: isDark ? const Color(0xFF1E284A) : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isDark ? const Color(0xFF1E284A) : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     ),
                   ),
                 ),
@@ -218,11 +208,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                           separatorBuilder: (context, index) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final study = studies[index];
-                            return FadeSlideEntrance(
-                              delay: Duration(milliseconds: 80 + (index * 40)),
-                              duration: const Duration(milliseconds: 400),
-                              child: _buildProjectCard(context, study, isDark, locale),
-                            );
+                            return _buildProjectCard(context, study, isDark, locale);
                           },
                         ),
                 ),
@@ -390,12 +376,6 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                             ),
                           );
                           break;
-                        case 'edit':
-                          context.read<CalculatorCubit>().loadStudy(study);
-                          if (widget.onNavigateTab != null) {
-                            widget.onNavigateTab!(1);
-                          }
-                          break;
                         case 'metrics':
                           Navigator.push(
                             context,
@@ -427,17 +407,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                           children: [
                             const Icon(Icons.visibility_outlined, size: 18, color: Color(0xFF2563EB)),
                             const SizedBox(width: 10),
-                            Text(isAr ? 'عرض (Show)' : 'Show', style: const TextStyle(fontSize: 13)),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF2563EB)),
-                            const SizedBox(width: 10),
-                            Text(isAr ? 'تعديل (Edit)' : 'Edit in Calculator', style: const TextStyle(fontSize: 13)),
+                            Text(isAr ? 'عرض' : 'Show', style: const TextStyle(fontSize: 13)),
                           ],
                         ),
                       ),
@@ -447,7 +417,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                           children: [
                             const Icon(Icons.tune_rounded, size: 18, color: Color(0xFF2563EB)),
                             const SizedBox(width: 10),
-                            Text(isAr ? 'المؤشرات (Metrics)' : 'Metrics & Products', style: const TextStyle(fontSize: 13)),
+                            Text(isAr ? 'المؤشرات والمنتجات' : 'Metrics & Products', style: const TextStyle(fontSize: 13)),
                           ],
                         ),
                       ),
@@ -457,7 +427,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                           children: [
                             const Icon(Icons.fact_check_outlined, size: 18, color: Color(0xFF2563EB)),
                             const SizedBox(width: 10),
-                            Text(isAr ? 'الافتراضات (Assumptions)' : 'Assumptions & Phasing', style: const TextStyle(fontSize: 13)),
+                            Text(isAr ? 'الافتراضات ومراحل التنفيذ' : 'Assumptions & Phasing', style: const TextStyle(fontSize: 13)),
                           ],
                         ),
                       ),
@@ -467,7 +437,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                           children: [
                             const Icon(Icons.picture_as_pdf_outlined, size: 18, color: Color(0xFF2563EB)),
                             const SizedBox(width: 10),
-                            Text(isAr ? 'إصدار تقرير (Generate Report)' : 'Generate Report (PDF)', style: const TextStyle(fontSize: 13)),
+                            Text(isAr ? 'إصدار تقرير رسمي' : 'Generate Report (PDF)', style: const TextStyle(fontSize: 13)),
                           ],
                         ),
                       ),
@@ -478,7 +448,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                           children: [
                             const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFDC2626)),
                             const SizedBox(width: 10),
-                            Text(isAr ? 'حذف (Delete)' : 'Delete', style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
+                            Text(isAr ? 'حذف' : 'Delete', style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
                           ],
                         ),
                       ),
@@ -573,7 +543,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                 children: [
                   Expanded(
                     child: _metric(
-                      isAr ? 'التكلفة (TDC)' : 'Cost (TDC)',
+                      isAr ? 'إجمالي التكلفة' : 'Cost (TDC)',
                       KpiMetricTile.formatCurrency(study.totalDevelopmentCost, currency: study.currency),
                       isDark,
                     ),
@@ -589,7 +559,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _metric(
-                      isAr ? 'العائد (ROI)' : 'ROI',
+                      isAr ? 'العائد على الاستثمار' : 'ROI',
                       '${study.roiPct.toStringAsFixed(1)}%',
                       isDark,
                       color: const Color(0xFF10B981),
@@ -598,7 +568,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _metric(
-                      isAr ? 'الداخلي (IRR)' : 'Equity IRR',
+                      isAr ? 'معدل العائد الداخلي' : 'Equity IRR',
                       '${study.annualizedIrrPct.toStringAsFixed(1)}%',
                       isDark,
                       color: const Color(0xFF2563EB),

@@ -122,6 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context,
       message: isAr ? 'تم تجاهل التغييرات' : 'Changes discarded',
     );
+    Navigator.pop(context);
   }
 
   Future<void> _pickImage([ImageSource source = ImageSource.gallery]) async {
@@ -167,10 +168,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isDark = context.watch<ThemeCubit>().state;
     final locale = context.watch<LocaleCubit>().state;
     final isAr = locale == 'ar';
+    
+    
 
     final surfaceBg = isDark ? const Color(0xFF131A31) : Colors.white;
     final borderColor = isDark ? const Color(0xFF1E2A4A) : const Color(0xFFE2E8F0);
     final inputBg = isDark ? const Color(0xFF0F1426) : const Color(0xFFF8FAFC);
+
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,

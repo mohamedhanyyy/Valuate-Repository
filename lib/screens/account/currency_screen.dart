@@ -5,8 +5,7 @@ import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/auth/auth_state.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/theme/theme_cubit.dart';
-import '../../widgets/common/app_snack_bar.dart';
-import 'create_currency_screen.dart';
+
 
 class CurrencyModel {
   final String id;
@@ -201,128 +200,69 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: borderColor, width: 1),
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isCompact = constraints.maxWidth < 450;
-
-                  final headerInfo = Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF131A31) : Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: borderColor),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF131A31) : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: borderColor),
+                    ),
+                    child: const Icon(
+                      Icons.monetization_on_outlined,
+                      size: 22,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isAr ? 'مساحة العمل  /  العملات' : 'Workspace  /  Currencies',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.monetization_on_outlined,
-                          size: 22,
-                          color: AppColors.gold,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 4),
+                        Row(
                           children: [
                             Text(
-                              isAr ? 'مساحة العمل  /  العملات' : 'Workspace  /  Currencies',
+                              isAr ? 'العملات' : 'Currencies',
                               style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: isDark ? Colors.white : AppColors.brandNavy,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  isAr ? 'العملات' : 'Currencies',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : AppColors.brandNavy,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF10B981),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  isAr ? '${_currencies.length} الإجمالي' : '${_currencies.length} Total',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF10B981),
-                                  ),
-                                ),
-                              ],
+                            const SizedBox(width: 10),
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF10B981),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              isAr ? '${_currencies.length} الإجمالي' : '${_currencies.length} Total',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF10B981),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  );
-
-                  final addButton = ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(
-                      isAr ? 'إضافة عملة جديدة' : 'Add New Currency',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    onPressed: () async {
-                      final newCurrency = await Navigator.push<CurrencyModel>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CreateCurrencyScreen(),
-                        ),
-                      );
-                      if (newCurrency != null) {
-                        setState(() {
-                          _currencies.insert(0, newCurrency);
-                        });
-                      }
-                    },
-                  );
-
-                  if (isCompact) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        headerInfo,
-                        const SizedBox(height: 14),
-                        addButton,
                       ],
-                    );
-                  }
-
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: headerInfo),
-                      const SizedBox(width: 14),
-                      addButton,
-                    ],
-                  );
-                },
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
@@ -506,16 +446,6 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
                               ),
                             ),
                           ),
-                          DataColumn(
-                            label: Text(
-                              isAr ? 'إجراء' : 'Action',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
-                              ),
-                            ),
-                          ),
                         ],
                         rows: filteredCurrencies.map((c) {
                           return DataRow(
@@ -574,36 +504,6 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
                                     fontFamily: 'monospace',
                                     color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
                                   ),
-                                ),
-                              ),
-                              DataCell(
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit_outlined, size: 16),
-                                      color: isDark ? Colors.white60 : Colors.black54,
-                                      onPressed: () {
-                                        AppSnackBar.showInfo(
-                                          context,
-                                          message: isAr ? 'تعديل عملة ${c.nameAr}' : 'Edit ${c.nameEn}',
-                                        );
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline_rounded, size: 16),
-                                      color: const Color(0xFFEF4444),
-                                      onPressed: () {
-                                        setState(() {
-                                          _currencies.removeWhere((item) => item.id == c.id);
-                                        });
-                                        AppSnackBar.showError(
-                                          context,
-                                          message: isAr ? 'تم حذف العملة بنجاح' : 'Currency deleted successfully',
-                                        );
-                                      },
-                                    ),
-                                  ],
                                 ),
                               ),
                             ],

@@ -55,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
       _OnboardingSlideData(
         tag: locale == 'ar'
-            ? 'حاسبة القرار والسيناريوهات'
+            ? 'النمذجة والسيناريوهات المالية'
             : 'PRECISION RISK & SENSITIVITY',
         title: locale == 'ar'
             ? 'نمذجة مالية متقدمة واختبار فوري للحساسية والمخاطر'
@@ -63,7 +63,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         description: locale == 'ar'
             ? 'احسب عوائد الـ ROI والـ IRR ومضاعف الملكية MOIC لحظياً، واختبر السيناريوهات المتفائلة والمتحفظة لتجنب المخاطر.'
             : 'Instantly calculate ROI, IRR, MOIC, profit margins, and dynamic Bear/Base/Bull sensitivity scenarios.',
-        visual: _buildCalculatorVisual(isDark, locale),
+        visual: _buildFinancialAnalysisVisual(isDark, locale),
       ),
       _OnboardingSlideData(
         tag: locale == 'ar'
@@ -73,8 +73,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ? 'إدارة متكاملة للمحافظ الاستثمارية ومؤشرات أسواق الشرق الأوسط'
             : 'Consolidated Multi-Asset Portfolios & Regional Intelligence',
         description: locale == 'ar'
-            ? 'تتبع جميع تكاليفك وإيراداتك في لوحة مركزية واحدة، مع مؤشرات تكاليف البناء المباشرة لأسواق السعودية والإمارات ومصر وقطر.'
-            : 'Track costs, revenues, and sales across consolidated assets with live construction cost benchmarks for KSA, UAE, Egypt, and Qatar.',
+            ? 'تتبع جميع تكاليفك وإيراداتك في لوحة مركزية واحدة، مع مؤشرات تكاليف البناء المباشرة لأسواق السعودية ومصر.'
+            : 'Track costs, revenues, and sales across consolidated assets with live construction cost benchmarks for Saudi Arabia and Egypt.',
         visual: _buildMarketVisual(isDark, locale),
       ),
     ];
@@ -303,7 +303,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildCalculatorVisual(bool isDark, String locale) {
+  Widget _buildFinancialAnalysisVisual(bool isDark, String locale) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(

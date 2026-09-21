@@ -8,6 +8,7 @@ class VerdictBadge extends StatelessWidget {
   final int score;
   final String locale;
   final bool isExpanded;
+  final bool isPending;
 
   const VerdictBadge({
     super.key,
@@ -15,9 +16,11 @@ class VerdictBadge extends StatelessWidget {
     required this.score,
     required this.locale,
     this.isExpanded = false,
+    this.isPending = false,
   });
 
   Color get _color {
+    if (isPending) return const Color(0xFF2563EB);
     switch (verdict) {
       case VerdictType.go:
         return AppColors.success;
@@ -29,6 +32,9 @@ class VerdictBadge extends StatelessWidget {
   }
 
   String get _title {
+    if (isPending) {
+      return locale == 'ar' ? 'قيد التقييم' : 'Pending Evaluation';
+    }
     switch (verdict) {
       case VerdictType.go:
         return AppStrings.get('goDecision', locale: locale);
@@ -40,6 +46,7 @@ class VerdictBadge extends StatelessWidget {
   }
 
   IconData get _icon {
+    if (isPending) return Icons.hourglass_empty_rounded;
     switch (verdict) {
       case VerdictType.go:
         return Icons.check_circle_rounded;
@@ -97,13 +104,13 @@ class VerdictBadge extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 CircularProgressIndicator(
-                  value: score / 100.0,
+                  value: isPending ? 0.0 : score / 100.0,
                   strokeWidth: 4.5,
                   backgroundColor: _color.withValues(alpha: 0.2),
                   valueColor: AlwaysStoppedAnimation<Color>(_color),
                 ),
                 Text(
-                  '$score',
+                  isPending ? '--' : '$score',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -135,17 +142,21 @@ class VerdictBadge extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  verdict == VerdictType.go
+                  isPending
                       ? (locale == 'ar'
-                          ? 'المشروع يحقق معدل عائد وهوامش ربحية استثمارية ممتازة تفوق المعايير الإقليمية.'
-                          : 'High feasibility. Returns and margins exceed regional hurdle rates.')
-                      : verdict == VerdictType.caution
+                          ? 'بانتظار اكتمال التحليلات المالية واستلام قرار الجدوى من الخادم (Backend).'
+                          : 'Awaiting financial feasibility calculations and verdict from backend.')
+                      : verdict == VerdictType.go
                           ? (locale == 'ar'
-                              ? 'عائد متوسط. يتطلب مراجعة تكلفة الأرض أو تعظيم المسطحات التأجيرية.'
-                              : 'Moderate feasibility. Optimize land cost or GFA efficiency to improve IRR.')
-                          : (locale == 'ar'
-                              ? 'مشروع عالي المخاطر أو ذو هامش منخفض جداً. يوصى بإعادة دراسة التكاليف.'
-                              : 'High financial risk. Development costs outweigh projected revenue.'),
+                              ? 'المشروع يحقق معدل عائد وهوامش ربحية استثمارية ممتازة تفوق المعايير الإقليمية.'
+                              : 'High feasibility. Returns and margins exceed regional hurdle rates.')
+                          : verdict == VerdictType.caution
+                              ? (locale == 'ar'
+                                  ? 'عائد متوسط. يتطلب مراجعة تكلفة الأرض أو تعظيم المسطحات التأجيرية.'
+                                  : 'Moderate feasibility. Optimize land cost or GFA efficiency to improve IRR.')
+                              : (locale == 'ar'
+                                  ? 'مشروع عالي المخاطر أو ذو هامش منخفض جداً. يوصى بإعادة دراسة التكاليف.'
+                                  : 'High financial risk. Development costs outweigh projected revenue.'),
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,

@@ -43,14 +43,12 @@ class AppStrings {
 
       // Navigation
       'navDashboard': 'Dashboard',
-      'navCalculator': 'Calculator',
       'navProjects': 'Projects',
       'navMarket': 'Intelligence',
       'navSettings': 'Settings',
 
       // Dashboard
       'portfolioOverview': 'Portfolio Feasibility Overview',
-      'quickCalculator': 'Quick Go-or-No-Go',
       'activeProjects': 'Active Studies',
       'totalPipelineValue': 'Total Pipeline',
       'averageRoi': 'Average ROI',
@@ -63,8 +61,7 @@ class AppStrings {
       'cautionDecision': 'CAUTION',
       'liveMarketUpdate': 'Live Regional Intelligence',
 
-      // Calculator
-      'feasibilityCalculator': 'Feasibility Study Calculator',
+      // Feasibility & Financial Metrics
       'projectDetails': 'Project Definition',
       'projectName': 'Project Name',
       'projectType': 'Asset Type',
@@ -207,36 +204,33 @@ class AppStrings {
 
       // Navigation
       'navDashboard': 'الرئيسية',
-      'navCalculator': 'الحاسبة',
       'navProjects': 'المشاريع',
       'navMarket': 'المؤشرات',
       'navSettings': 'الإعدادات',
 
       // Dashboard
       'portfolioOverview': 'نظرة عامة على المحفظة العقارية',
-      'quickCalculator': 'حاسبة الجدوى السريعة',
       'activeProjects': 'الدراسات النشطة',
       'totalPipelineValue': 'إجمالي قيمة المحفظة',
-      'averageRoi': 'متوسط العائد (ROI)',
+      'averageRoi': 'متوسط العائد على الاستثمار',
       'marketTrend': 'مؤشرات السوق الإقليمية',
       'recentStudies': 'أحدث دراسات الجدوى',
       'viewAll': 'عرض الكل',
       'newStudy': '+ دراسة جديدة',
-      'goDecision': 'مجدي (GO)',
-      'noGoDecision': 'غير مجدي (NO-GO)',
-      'cautionDecision': 'تحذير (CAUTION)',
+      'goDecision': 'مجدي',
+      'noGoDecision': 'غير مجدي',
+      'cautionDecision': 'تحذير',
       'liveMarketUpdate': 'بيانات السوق المباشرة',
 
-      // Calculator
-      'feasibilityCalculator': 'حاسبة دراسات الجدوى العقارية',
+      // Feasibility & Financial Metrics
       'projectDetails': 'تعريف المشروع',
       'projectName': 'اسم المشروع',
       'projectType': 'نوع الأصل العقاري',
       'location': 'المدينة / السوق',
       'landArea': 'مساحة الأرض',
-      'far': 'معامل مسطحات البناء (FAR)',
-      'bua': 'إجمالي مساحة البناء (BUA)',
-      'gfa': 'المساحة الطابقية القابلة للتأجير (GFA)',
+      'far': 'معامل مسطحات البناء',
+      'bua': 'إجمالي مساحة البناء',
+      'gfa': 'المساحة الطابقية القابلة للتأجير',
       'landCost': 'تكلفة شراء الأرض',
       'constructionCostPerSqm': 'تكلفة البناء / م²',
       'softCostPct': 'المصاريف الاستشارية والإدارية (%)',
@@ -246,12 +240,12 @@ class AppStrings {
       'calculate': 'تنفيذ نموذج الجدوى',
       'verdict': 'نتيجة الجدوى',
       'verdictScore': 'مؤشر الجدوى والجاذبية',
-      'totalDevelopmentCost': 'إجمالي تكلفة التطوير (TDC)',
+      'totalDevelopmentCost': 'إجمالي تكلفة التطوير',
       'grossRevenue': 'إجمالي الإيرادات المتوقعة',
       'netProfit': 'صافي الربح المتوقع',
-      'roi': 'العائد على الاستثمار (ROI)',
-      'irr': 'معدل العائد الداخلي (IRR)',
-      'equityMultiple': 'مضاعف حقوق الملكية (MOIC)',
+      'roi': 'العائد على الاستثمار',
+      'irr': 'معدل العائد الداخلي',
+      'equityMultiple': 'مضاعف حقوق الملكية',
       'profitMargin': 'هامش الربح على التكلفة',
       'breakeven': 'نقطة التعادل / م²',
       'costBreakdown': 'تحليل وتوزيع عناصر التكلفة',
@@ -288,9 +282,9 @@ class AppStrings {
       'currency': 'العملة',
       'unit': 'وحدة قياس المساحة',
       'sqm': 'متر مربع (م²)',
-      'sqft': 'قدم مربع (sq ft)',
+      'sqft': 'قدم مربع',
       'about': 'عن منصة فاليوإيت',
-      'version': 'الإصدار 1.0.0 (سحابة الشرق الأوسط)',
+      'version': 'الإصدار 1.0.0 - سحابة الشرق الأوسط',
       'signOut': 'تسجيل الخروج',
       'deleteAccount': 'حذف الحساب',
 
@@ -308,7 +302,7 @@ class AppStrings {
       'selectType': 'اختر النوع',
       'selectCountry': 'يرجى اختيار خيار',
       'projectLocation': 'موقع المشروع',
-      'locationMapPlaceholder': 'Click to select location on map',
+      'locationMapPlaceholder': 'انقر لتحديد الموقع على الخريطة',
       'chooseOnMap': 'اختر علي الخريطه',
       'landAreaSqm': 'مساحة الأرض',
       'country': 'البلد',

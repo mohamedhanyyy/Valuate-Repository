@@ -48,6 +48,24 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
     'Finishing Cost',
   ];
 
+  String _costCentreLabel(String cat, bool isAr) {
+    if (!isAr) return cat;
+    switch (cat) {
+      case 'Grading & Mobilization':
+        return 'التسوية والتجهيزات الأولية';
+      case 'Villas Building structure & block work':
+        return 'الهيكل الإنشائي وأعمال البلوك';
+      case 'Landscape':
+        return 'تنسيق الموقع والمسطحات الخضراء';
+      case 'Infrastructure':
+        return 'البنية التحتية والمرافق';
+      case 'Finishing Cost':
+        return 'تكاليف التشطيبات';
+      default:
+        return cat;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -243,23 +261,30 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        isAr ? 'التحقق من افتراضات المشروع' : 'Validate Project Assumptions',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
+                      Expanded(
+                        child: Text(
+                          isAr ? 'التحقق من افتراضات المشروع' : 'Validate Project Assumptions',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.brandBlue,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          _study.title,
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.brandBlue,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            _study.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                          ),
                         ),
                       ),
                     ],
@@ -278,7 +303,7 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
 
             // 1. SALES TREND CARD
             _buildSectionCard(
-              title: isAr ? '1. اتجاه المبيعات السنوي (Sales Trend)' : '1. Sales Trend Phasing',
+              title: isAr ? '1. اتجاه المبيعات السنوي' : '1. Sales Trend Phasing',
               subtitle: isAr
                   ? 'توزيع نسبة المبيعات السنوية (يجب أن يكون الإجمالي 100%)'
                   : 'Allocate annual sales and confirm a 100% total',
@@ -340,7 +365,7 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
 
             // 2. PRICE GROWTH CARD
             _buildSectionCard(
-              title: isAr ? '2. نمو الأسعار السنوي (Price Growth)' : '2. Annual Price Growth',
+              title: isAr ? '2. نمو الأسعار السنوي' : '2. Annual Price Growth',
               subtitle: isAr
                   ? 'نسبة الزيادة السنوية المتوقعة في الأسعار لكل منتج وسنة'
                   : 'Set the annual price escalation by product and year',
@@ -363,7 +388,7 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
 
             // 3. HARD COST BUDGETS
             _buildSectionCard(
-              title: isAr ? '3. تكاليف البناء المباشرة (Hard Cost Centers)' : '3. Hard Cost Centres',
+              title: isAr ? '3. تكاليف البناء المباشرة' : '3. Hard Cost Centres',
               subtitle: isAr
                   ? 'مراجعة معدلات التكلفة لكل مركز تكلفة بنائي'
                   : 'Review unit cost by cost centre',
@@ -378,7 +403,7 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
                         Expanded(
                           flex: 3,
                           child: Text(
-                            cat,
+                            _costCentreLabel(cat, isAr),
                             style: TextStyle(
                               fontSize: 12.5,
                               fontWeight: FontWeight.w600,
@@ -411,7 +436,7 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
 
             // 4. CONSTRUCTION S-CURVE
             _buildSectionCard(
-              title: isAr ? '4. منحنى البناء (Construction S-Curve)' : '4. Construction S-Curve Phasing',
+              title: isAr ? '4. منحنى البناء' : '4. Construction S-Curve Phasing',
               subtitle: isAr
                   ? 'توزيع نسب الإنجاز السنوية لكل مركز تكلفة (كل صف = 100%)'
                   : 'Phase each cost centre. Every row totals 100%',
@@ -439,7 +464,7 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              cat,
+                              _costCentreLabel(cat, isAr),
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -490,7 +515,7 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
 
             // 5. OVERRIDE RULE CARD
             _buildSectionCard(
-              title: isAr ? '5. سجل التعديلات وقواعد الاستثناء (Override Rule)' : '5. Override Rule Audit',
+              title: isAr ? '5. سجل التعديلات وقواعد الاستثناء' : '5. Override Rule Audit',
               subtitle: isAr
                   ? 'تسجيل مصدر وتاريخ وسبب أي تعديل أو استثناء في الافتراضات'
                   : 'Record the source, date and reason for every changed assumption',

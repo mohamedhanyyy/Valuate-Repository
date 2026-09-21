@@ -16,11 +16,12 @@ import '../../widgets/theme_lang_bar.dart';
 import '../../widgets/valuate_logo.dart';
 import '../../widgets/verdict_badge.dart';
 import '../projects/project_detail_screen.dart';
+import '../workspace/create_project_wizard_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
-  final Function(int) onTabChange;
+  final Function(int)? onTabChange;
 
-  const DashboardScreen({super.key, required this.onTabChange});
+  const DashboardScreen({super.key, this.onTabChange});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +35,7 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
         elevation: 0,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
         title: ValuateLogo(height: 30, isDark: isDark),
         actions: const [
           Padding(
@@ -163,10 +164,10 @@ class DashboardScreen extends StatelessWidget {
                               Expanded(
                                 child: KpiMetricTile(
                                   label: AppStrings.get('averageRoi', locale: locale),
-                                  value: KpiMetricTile.formatPercent(state.averageRoi),
+                                  value: '--',
                                   icon: Icons.trending_up_rounded,
                                   accentColor: AppColors.success,
-                                  subtext: '${state.goCount} GO Opportunities',
+                                  subtext: locale == 'ar' ? 'بانتظار التقييم' : 'Pending Evaluation',
                                 ),
                               ),
                             ],
@@ -180,7 +181,7 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 22),
 
-              // Quick Go-or-No-Go Launcher Card
+              // New Feasibility Project Launcher Card
               FadeSlideEntrance(
                 delay: const Duration(milliseconds: 200),
                 duration: const Duration(milliseconds: 550),
@@ -210,7 +211,7 @@ class DashboardScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
-                          Icons.calculate_outlined,
+                          Icons.add_business_rounded,
                           color: AppColors.gold,
                           size: 28,
                         ),
@@ -221,7 +222,7 @@ class DashboardScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              AppStrings.get('quickCalculator', locale: locale),
+                              locale == 'ar' ? 'إنشاء دراسة جدوى جديدة' : 'New Feasibility Project',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -231,8 +232,8 @@ class DashboardScreen extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               locale == 'ar'
-                                  ? 'احسب الجدوى والتكلفة والعائد في دقيقتين'
-                                  : 'Calculate TDC, ROI & IRR in 2 minutes',
+                                  ? 'معالج ذكي لتحديد المنتجات والتكاليف والمراحل'
+                                  : 'Guided wizard for products, phasing & DCF',
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: 12,
@@ -250,9 +251,16 @@ class DashboardScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: () => onTabChange(1), // Switch to calculator tab
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CreateProjectWizardScreen(),
+                            ),
+                          );
+                        },
                         child: Text(
-                          locale == 'ar' ? 'ابدأ الآن' : 'Launch',
+                          locale == 'ar' ? 'ابدأ الآن' : 'Create',
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                         ),
                       ),
@@ -278,7 +286,13 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () => onTabChange(2), // Switch to projects tab
+                      onTap: () {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else if (onTabChange != null) {
+                          onTabChange!(1);
+                        }
+                      },
                       child: Text(
                         AppStrings.get('viewAll', locale: locale),
                         style: const TextStyle(
