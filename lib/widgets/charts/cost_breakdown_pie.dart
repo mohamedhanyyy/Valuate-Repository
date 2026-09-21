@@ -76,13 +76,13 @@ class _CostBreakdownPieState extends State<CostBreakdownPie>
         final sections = [
           PieChartSectionData(
             value: widget.study.landCost * progress + 0.01,
-            color: AppColors.gold,
+            color: AppColors.brandBurgundy,
             title: '${landPct.toStringAsFixed(0)}%',
             radius: _touchedIndex == 0 ? 48 : 42,
             titleStyle: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Colors.white,
             ),
           ),
           PieChartSectionData(
@@ -163,7 +163,7 @@ class _CostBreakdownPieState extends State<CostBreakdownPie>
               alignment: WrapAlignment.center,
               children: [
                 _legendItem(
-                  color: AppColors.gold,
+                  color: AppColors.brandBurgundy,
                   label: widget.locale == 'ar' ? 'الأرض' : 'Land Acquisition',
                   isDark: isDark,
                   isSelected: _touchedIndex == 0,

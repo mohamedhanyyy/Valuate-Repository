@@ -32,7 +32,7 @@ class ThemeLangBar extends StatelessWidget {
             child: Icon(
               isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
               size: 18,
-              color: isDark ? AppColors.gold : AppColors.brandNavy,
+              color: isDark ? AppColors.darkText : AppColors.brandNavy,
             ),
           ),
         ),

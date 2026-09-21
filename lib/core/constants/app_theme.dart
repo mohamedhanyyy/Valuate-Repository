@@ -18,11 +18,11 @@ class AppTheme {
       splashFactory: NoSplash.splashFactory,
       colorScheme: ColorScheme.dark(
         primary: AppColors.primaryBlue,
-        secondary: AppColors.gold,
+        secondary: AppColors.brandBlue,
         surface: AppColors.darkSurface,
         error: AppColors.danger,
         onPrimary: Colors.white,
-        onSecondary: Colors.black,
+        onSecondary: Colors.white,
         onSurface: AppColors.darkText,
         onError: Colors.white,
       ),
@@ -118,11 +118,11 @@ class AppTheme {
       ),
       tabBarTheme: TabBarThemeData(
         dividerColor: Colors.transparent,
-        labelColor: AppColors.gold,
+        labelColor: AppColors.darkText,
         unselectedLabelColor: AppColors.darkTextMuted,
         labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w700, fontSize: 13),
         unselectedLabelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 12),
-        indicatorColor: AppColors.gold,
+        indicatorColor: AppColors.primaryBlue,
       ),
     );
   }
@@ -142,11 +142,11 @@ class AppTheme {
       splashFactory: NoSplash.splashFactory,
       colorScheme: ColorScheme.light(
         primary: AppColors.lightAccentStrong,
-        secondary: AppColors.gold,
+        secondary: AppColors.brandBlue,
         surface: AppColors.lightSurface,
         error: AppColors.dangerLight,
         onPrimary: Colors.white,
-        onSecondary: Colors.black,
+        onSecondary: Colors.white,
         onSurface: AppColors.lightText,
         onError: Colors.white,
       ),
@@ -242,11 +242,11 @@ class AppTheme {
       ),
       tabBarTheme: TabBarThemeData(
         dividerColor: Colors.transparent,
-        labelColor: AppColors.gold,
+        labelColor: AppColors.brandNavy,
         unselectedLabelColor: AppColors.lightTextMuted,
         labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w700, fontSize: 13),
         unselectedLabelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, fontSize: 12),
-        indicatorColor: AppColors.gold,
+        indicatorColor: AppColors.brandNavy,
       ),
     );
   }

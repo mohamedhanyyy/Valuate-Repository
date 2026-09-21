@@ -48,13 +48,13 @@ class StatFeatureStrip extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: AppColors.gold.withValues(alpha: 0.15),
+              color: AppColors.primaryBlue.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               icon,
               size: 18,
-              color: AppColors.gold,
+              color: AppColors.primaryBlue,
             ),
           ),
           const SizedBox(width: 12),

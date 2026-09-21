@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/services/pdf_export_service.dart';
 import '../../cubits/calculator/calculator_cubit.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/projects/projects_cubit.dart';
@@ -9,10 +9,12 @@ import '../../cubits/projects/projects_state.dart';
 import '../../cubits/theme/theme_cubit.dart';
 import '../../models/feasibility_study.dart';
 import '../../widgets/animations/fade_slide_entrance.dart';
+import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/kpi_metric_tile.dart';
-import '../../widgets/verdict_badge.dart';
 import '../workspace/create_project_wizard_screen.dart';
+import 'project_assumptions_screen.dart';
 import 'project_detail_screen.dart';
+import 'project_metrics_screen.dart';
 
 class ProjectsListScreen extends StatefulWidget {
   final Function(int)? onNavigateTab;
@@ -56,26 +58,26 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     final isAr = locale == 'ar';
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
+      backgroundColor: isDark ? const Color(0xFF0A0E1A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
+        backgroundColor: isDark ? const Color(0xFF10172D) : Colors.white,
         elevation: 0,
         title: Text(
-          AppStrings.get('navProjects', locale: locale),
+          isAr ? 'المشاريع ودراسات الجدوى' : 'Projects & Studies',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w800,
-            color: isDark ? AppColors.darkText : AppColors.lightText,
+            color: isDark ? Colors.white : const Color(0xFF1E2547),
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.gold, size: 22),
+            icon: const Icon(Icons.add_circle_outline_rounded, color: Color(0xFF2563EB), size: 24),
             tooltip: isAr ? 'إنشاء مشروع جديد' : 'Create New Project',
             onPressed: _openCreateProjectWizard,
           ),
           IconButton(
-            icon: const Icon(Icons.calculate_outlined, color: AppColors.primaryBlue, size: 22),
+            icon: const Icon(Icons.calculate_outlined, color: Color(0xFF2563EB), size: 24),
             tooltip: AppStrings.get('newStudy', locale: locale),
             onPressed: () {
               context.read<CalculatorCubit>().resetToDefaults();
@@ -88,8 +90,8 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openCreateProjectWizard,
-        backgroundColor: AppColors.gold,
-        foregroundColor: AppColors.brandNavy,
+        backgroundColor: const Color(0xFF2563EB),
+        foregroundColor: Colors.white,
         elevation: 4,
         icon: const Icon(Icons.add_rounded, size: 20),
         label: Text(
@@ -100,7 +102,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
       body: BlocBuilder<ProjectsCubit, ProjectsState>(
         builder: (context, state) {
           if (state is ProjectsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF2563EB)));
           }
 
           if (state is ProjectsLoaded) {
@@ -112,7 +114,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                 FadeSlideEntrance(
                   duration: const Duration(milliseconds: 450),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                     child: TextField(
                       controller: _searchController,
                       onChanged: (val) {
@@ -120,17 +122,19 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                       },
                       onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
                       style: TextStyle(
-                        color: isDark ? AppColors.darkText : AppColors.lightText,
+                        color: isDark ? Colors.white : const Color(0xFF1E2547),
                         fontSize: 14,
                       ),
                       decoration: InputDecoration(
                         hintText: isAr
                             ? 'بحث عن مشروع، مطور أو موقع...'
                             : 'Search project, developer or location...',
+                        filled: true,
+                        fillColor: isDark ? const Color(0xFF10172D) : Colors.white,
                         prefixIcon: Icon(
                           Icons.search_rounded,
                           size: 20,
-                          color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                          color: isDark ? Colors.white38 : const Color(0xFF94A3B8),
                         ),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
@@ -141,7 +145,23 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                                 },
                               )
                             : null,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF1E284A) : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: isDark ? const Color(0xFF1E284A) : const Color(0xFFE2E8F0),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF2563EB), width: 1.5),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
                     ),
                   ),
@@ -158,8 +178,8 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                               children: [
                                 Icon(
                                   Icons.folder_open_rounded,
-                                  size: 54,
-                                  color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                                  size: 56,
+                                  color: isDark ? Colors.white24 : const Color(0xFFCBD5E1),
                                 ),
                                 const SizedBox(height: 14),
                                 Text(
@@ -169,14 +189,14 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
-                                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                                    color: isDark ? Colors.white60 : const Color(0xFF64748B),
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 16),
                                 ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryBlue,
+                                    backgroundColor: const Color(0xFF2563EB),
                                     foregroundColor: Colors.white,
                                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -193,15 +213,15 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                           ),
                         )
                       : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(18, 8, 18, 80),
+                          padding: const EdgeInsets.fromLTRB(18, 6, 18, 80),
                           itemCount: studies.length,
                           separatorBuilder: (context, index) => const SizedBox(height: 12),
                           itemBuilder: (context, index) {
                             final study = studies[index];
                             return FadeSlideEntrance(
-                              delay: Duration(milliseconds: 100 + (index * 60)),
-                              duration: const Duration(milliseconds: 480),
-                              child: _buildProjectItem(context, study, isDark, locale),
+                              delay: Duration(milliseconds: 80 + (index * 40)),
+                              duration: const Duration(milliseconds: 400),
+                              child: _buildProjectCard(context, study, isDark, locale),
                             );
                           },
                         ),
@@ -216,29 +236,32 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
     );
   }
 
-  Widget _buildProjectItem(
+  Widget _buildProjectCard(
     BuildContext context,
     FeasibilityStudy study,
     bool isDark,
     String locale,
   ) {
     final isAr = locale == 'ar';
+    final isEvaluated = study.status == ProjectStatus.evaluated;
+    final projectNum = '#${study.projectNumber}';
 
-    return Dismissible(
-      key: Key(study.id),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: AppColors.danger,
-          borderRadius: BorderRadius.circular(14),
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF10172D) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF1E284A) : const Color(0xFFE2E8F0),
+          width: 1,
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      onDismissed: (_) {
-        context.read<ProjectsCubit>().deleteStudy(study.id);
-      },
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -248,25 +271,38 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             ),
           );
         },
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              width: 1,
-            ),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header: Title & Verdict
+              // Top Row: Project ID, Title, Status & Actions Menu (Slide 3)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // ID Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E284A) : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF2D3B6E) : const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                    child: Text(
+                      projectNum,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1E2547),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+
+                  // Title & Developer
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,45 +310,29 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                         Text(
                           study.title,
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.darkText : AppColors.lightText,
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : const Color(0xFF1E2547),
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        // Developer & Location
+                        const SizedBox(height: 3),
                         Row(
                           children: [
                             Icon(
-                              Icons.person_outline_rounded,
+                              Icons.business_rounded,
                               size: 13,
-                              color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                              color: isDark ? Colors.white54 : const Color(0xFF64748B),
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              study.developerName,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '•',
-                              style: TextStyle(
-                                color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                study.location,
+                                study.developerName,
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                                  fontWeight: FontWeight.w500,
+                                  color: isDark ? Colors.white60 : const Color(0xFF64748B),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -324,33 +344,236 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  VerdictBadge(
-                    verdict: study.verdict,
-                    score: study.feasibilityScore,
-                    locale: locale,
+
+                  // Status Badge (Slide 3: Initialized vs Evaluated)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isEvaluated
+                          ? const Color(0xFF059669).withValues(alpha: 0.12)
+                          : const Color(0xFF2563EB).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isEvaluated ? const Color(0xFF059669) : const Color(0xFF2563EB),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      isEvaluated
+                          ? (isAr ? 'تم التقييم' : 'Evaluated')
+                          : (isAr ? 'مُنشأ' : 'Initialized'),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isEvaluated ? const Color(0xFF10B981) : const Color(0xFF38BDF8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+
+                  // Context Action Menu (Slide 3 Action Menu)
+                  PopupMenuButton<String>(
+                    icon: Icon(
+                      Icons.more_vert_rounded,
+                      color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                      size: 20,
+                    ),
+                    color: isDark ? const Color(0xFF16203D) : Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    onSelected: (val) {
+                      switch (val) {
+                        case 'show':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProjectDetailScreen(study: study),
+                            ),
+                          );
+                          break;
+                        case 'edit':
+                          context.read<CalculatorCubit>().loadStudy(study);
+                          if (widget.onNavigateTab != null) {
+                            widget.onNavigateTab!(1);
+                          }
+                          break;
+                        case 'metrics':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProjectMetricsScreen(study: study),
+                            ),
+                          );
+                          break;
+                        case 'assumptions':
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProjectAssumptionsScreen(study: study),
+                            ),
+                          );
+                          break;
+                        case 'report':
+                          PdfExportService.sharePdf(context, study: study, locale: locale);
+                          break;
+                        case 'delete':
+                          _confirmDelete(context, study, isAr);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'show',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.visibility_outlined, size: 18, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 10),
+                            Text(isAr ? 'عرض (Show)' : 'Show', style: const TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 10),
+                            Text(isAr ? 'تعديل (Edit)' : 'Edit in Calculator', style: const TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'metrics',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.tune_rounded, size: 18, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 10),
+                            Text(isAr ? 'المؤشرات (Metrics)' : 'Metrics & Products', style: const TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'assumptions',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.fact_check_outlined, size: 18, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 10),
+                            Text(isAr ? 'الافتراضات (Assumptions)' : 'Assumptions & Phasing', style: const TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'report',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.picture_as_pdf_outlined, size: 18, color: Color(0xFF2563EB)),
+                            const SizedBox(width: 10),
+                            Text(isAr ? 'إصدار تقرير (Generate Report)' : 'Generate Report (PDF)', style: const TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFDC2626)),
+                            const SizedBox(width: 10),
+                            Text(isAr ? 'حذف (Delete)' : 'Delete', style: const TextStyle(fontSize: 13, color: Color(0xFFDC2626))),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-              // Tags row (Sector, Type, Land Area)
+              // Timing & Details Bar (Slide 3: Start At, Sales Start At)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0E1528) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF1E284A) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 13,
+                      color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${isAr ? 'بدء المشروع' : 'Start'}: ${study.startYear}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : const Color(0xFF334155),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text('•', style: TextStyle(color: isDark ? Colors.white38 : const Color(0xFF94A3B8))),
+                    const SizedBox(width: 12),
+                    Icon(
+                      Icons.point_of_sale_rounded,
+                      size: 13,
+                      color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${isAr ? 'بدء البيع' : 'Sales Start'}: ${study.salesStartYear}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : const Color(0xFF334155),
+                      ),
+                    ),
+                    const Spacer(),
+                    // Decision Pill if evaluated
+                    if (isEvaluated)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: study.isGoDecision
+                              ? const Color(0xFF059669).withValues(alpha: 0.2)
+                              : const Color(0xFFDC2626).withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          study.isGoDecision ? 'GO' : 'NO-GO',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: study.isGoDecision ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Tags Row
               Wrap(
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  _tagBadge(study.assetType, AppColors.primaryBlue, isDark),
-                  _tagBadge(study.projectType, AppColors.gold, isDark),
-                  _tagBadge('${study.landArea.toStringAsFixed(0)} m²', isDark ? Colors.blueGrey : Colors.grey, isDark),
+                  _tagBadge(study.assetType, const Color(0xFF2563EB), isDark),
+                  _tagBadge(study.projectType, const Color(0xFF0284C7), isDark),
+                  _tagBadge('${study.landArea.toStringAsFixed(0)} m²', const Color(0xFF64748B), isDark),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
-              // Financial KPI grid
+              // KPI Row
               Row(
                 children: [
                   Expanded(
                     child: _metric(
-                      isAr ? 'التكلفة\n(TDC)' : 'Cost\n(TDC)',
+                      isAr ? 'التكلفة (TDC)' : 'Cost (TDC)',
                       KpiMetricTile.formatCurrency(study.totalDevelopmentCost, currency: study.currency),
                       isDark,
                     ),
@@ -358,7 +581,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _metric(
-                      isAr ? 'الإيرادات\nالمتوقعة' : 'Gross\nRevenue',
+                      isAr ? 'الإيرادات' : 'Revenue',
                       KpiMetricTile.formatCurrency(study.grossRevenue, currency: study.currency),
                       isDark,
                     ),
@@ -366,19 +589,19 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _metric(
-                      isAr ? 'العائد\n(ROI)' : 'Return\n(ROI)',
+                      isAr ? 'العائد (ROI)' : 'ROI',
                       '${study.roiPct.toStringAsFixed(1)}%',
                       isDark,
-                      color: AppColors.success,
+                      color: const Color(0xFF10B981),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _metric(
-                      isAr ? 'الداخلي\n(IRR)' : 'IRR\n(Rate)',
+                      isAr ? 'الداخلي (IRR)' : 'Equity IRR',
                       '${study.annualizedIrrPct.toStringAsFixed(1)}%',
                       isDark,
-                      color: AppColors.primaryBlue,
+                      color: const Color(0xFF2563EB),
                     ),
                   ),
                 ],
@@ -386,6 +609,43 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, FeasibilityStudy study, bool isAr) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(isAr ? 'تأكيد الحذف' : 'Confirm Delete'),
+        content: Text(
+          isAr
+              ? 'هل أنت متأكد من رغبتك في حذف مشروع "${study.title}"؟'
+              : 'Are you sure you want to delete "${study.title}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(isAr ? 'إلغاء' : 'Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<ProjectsCubit>().deleteStudy(study.id);
+              AppSnackBar.showSuccess(
+                context,
+                message: isAr ? 'تم حذف المشروع بنجاح' : 'Project deleted successfully',
+              );
+            },
+            child: Text(isAr ? 'حذف' : 'Delete'),
+          ),
+        ],
       ),
     );
   }
@@ -420,12 +680,12 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             fontSize: 11,
             fontWeight: FontWeight.w600,
             height: 1.25,
-            color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+            color: isDark ? Colors.white54 : const Color(0xFF64748B),
           ),
-          maxLines: 2,
+          maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
@@ -433,7 +693,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: color ?? (isDark ? AppColors.darkText : AppColors.lightText),
+              color: color ?? (isDark ? Colors.white : const Color(0xFF0F172A)),
             ),
             maxLines: 1,
           ),

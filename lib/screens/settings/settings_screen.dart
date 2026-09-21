@@ -107,7 +107,7 @@ class SettingsScreen extends StatelessWidget {
                                 : 'testeing',
                             style: const TextStyle(
                               fontSize: 12.5,
-                              color: AppColors.gold,
+                              color: AppColors.primaryBlue,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -209,7 +209,7 @@ class SettingsScreen extends StatelessWidget {
                     isDark: isDark,
                     trailing: Switch.adaptive(
                       value: isDark,
-                      activeTrackColor: AppColors.gold,
+                      activeTrackColor: AppColors.primaryBlue,
                       onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
                     ),
                   ),

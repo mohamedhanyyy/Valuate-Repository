@@ -217,7 +217,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     height: 8,
                     decoration: BoxDecoration(
                       color: _currentPage == index
-                          ? AppColors.gold
+                          ? AppColors.primaryBlue
                           : (isDark
                                 ? AppColors.darkBorderSoft
                                 : AppColors.lightBorder),
@@ -423,7 +423,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   color: isDark ? AppColors.darkText : AppColors.lightText,
                 ),
               ),
-              const Icon(Icons.public_rounded, color: AppColors.gold, size: 18),
+              const Icon(Icons.public_rounded, color: AppColors.primaryBlue, size: 18),
             ],
           ),
           const SizedBox(height: 12),
@@ -447,7 +447,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             '🇪🇬 القاهرة / التجمع',
             '32,500 EGP/m²',
             '+8.5%',
-            AppColors.gold,
+            AppColors.primaryBlue,
             isDark,
           ),
         ],

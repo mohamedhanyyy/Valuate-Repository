@@ -404,7 +404,7 @@ class _VoiceFeasibilityInputDialogState
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFE5A93C), Color(0xFFC48820)],
+                      colors: [AppColors.primaryBlue, Color(0xFF1D4ED8)],
                     ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [

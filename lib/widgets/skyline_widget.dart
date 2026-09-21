@@ -146,7 +146,7 @@ class _SkylinePainter extends CustomPainter {
     // 4. Draw Animated Pulse at (480, 24)
     final pulseOffset = Offset(480 * scaleX, 24 * scaleY);
     final pulsePaint = Paint()
-      ..color = (isDark ? AppColors.gold : AppColors.primaryBlue)
+      ..color = (isDark ? AppColors.darkAccentStrong : AppColors.primaryBlue)
           .withValues(alpha: (1.0 - pulseValue).clamp(0.0, 1.0))
       ..strokeWidth = 1.8
       ..style = PaintingStyle.stroke;

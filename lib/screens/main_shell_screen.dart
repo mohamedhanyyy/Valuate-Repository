@@ -92,7 +92,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: AppColors.gold,
+                                color: AppColors.brandBlue,
                                 width: 1.5,
                               ),
                             ),
@@ -154,7 +154,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       icon: Icons.add_circle_outline_rounded,
                       title: locale == 'ar' ? 'إضافة مشروع جديد' : 'Add new project',
                       isSelected: false,
-                      iconColor: AppColors.gold,
+                      iconColor: AppColors.primaryBlue,
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
@@ -364,7 +364,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
             onTap: _onTabSelect,
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.transparent,
-            selectedItemColor: AppColors.gold,
+            selectedItemColor: AppColors.primaryBlue,
             unselectedItemColor: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
             selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11.5, height: 1.4),
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11, height: 1.4),
@@ -380,10 +380,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 activeIcon: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.15),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.dashboard_rounded, size: 22, color: AppColors.gold),
+                  child: const Icon(Icons.dashboard_rounded, size: 22, color: AppColors.primaryBlue),
                 ),
                 label: AppStrings.get('navDashboard', locale: locale),
               ),
@@ -395,10 +395,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 activeIcon: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.15),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.calculate_rounded, size: 22, color: AppColors.gold),
+                  child: const Icon(Icons.calculate_rounded, size: 22, color: AppColors.primaryBlue),
                 ),
                 label: AppStrings.get('navCalculator', locale: locale),
               ),
@@ -410,10 +410,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 activeIcon: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.15),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.folder_rounded, size: 22, color: AppColors.gold),
+                  child: const Icon(Icons.folder_rounded, size: 22, color: AppColors.primaryBlue),
                 ),
                 label: AppStrings.get('navProjects', locale: locale),
               ),
@@ -425,10 +425,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 activeIcon: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.15),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.query_stats_rounded, size: 22, color: AppColors.gold),
+                  child: const Icon(Icons.query_stats_rounded, size: 22, color: AppColors.primaryBlue),
                 ),
                 label: AppStrings.get('navMarket', locale: locale),
               ),
@@ -440,10 +440,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 activeIcon: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.15),
+                    color: AppColors.primaryBlue.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.settings_rounded, size: 22, color: AppColors.gold),
+                  child: const Icon(Icons.settings_rounded, size: 22, color: AppColors.primaryBlue),
                 ),
                 label: AppStrings.get('navSettings', locale: locale),
               ),
@@ -479,13 +479,13 @@ class _MainShellScreenState extends State<MainShellScreen> {
     return Material(
       color: Colors.transparent,
       child: ListTile(
-        leading: Icon(icon, size: 20, color: iconColor ?? (isSelected ? AppColors.gold : null)),
+        leading: Icon(icon, size: 20, color: iconColor ?? (isSelected ? AppColors.primaryBlue : null)),
         title: Text(
           title,
           style: TextStyle(
             fontSize: 13.5,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? AppColors.gold : null,
+            color: isSelected ? AppColors.primaryBlue : null,
           ),
         ),
         dense: true,
