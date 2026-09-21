@@ -1,5 +1,9 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/auth/auth_state.dart';
@@ -24,6 +28,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _isSaving = false;
   bool _isUploadingImage = false;
+  String? _selectedImagePath;
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -31,18 +37,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authState = context.read<AuthCubit>().state;
     final user = authState is Authenticated ? authState.user : null;
 
+    _selectedImagePath = user?.avatarPath;
     _companyNameController = TextEditingController(
-      text: user?.companyName.isNotEmpty ?? false ? user!.companyName : 'testeing',
+      text: (user?.companyName.isNotEmpty ?? false)
+          ? user!.companyName
+          : (kDebugMode ? 'testeing' : ''),
     );
     _companyPhoneController = TextEditingController();
     _fullNameController = TextEditingController(
-      text: user?.fullName.isNotEmpty ?? false ? user!.fullName : 'mohamed hany',
+      text: (user?.fullName.isNotEmpty ?? false)
+          ? user!.fullName
+          : (kDebugMode ? 'mohamed hany' : ''),
     );
     _phoneController = TextEditingController(
-      text: user?.phone.isNotEmpty ?? false ? user!.phone : '+201145330378',
+      text: (user?.phone.isNotEmpty ?? false)
+          ? user!.phone
+          : (kDebugMode ? '+201145330378' : ''),
     );
     _emailController = TextEditingController(
-      text: user?.email.isNotEmpty ?? false ? user!.email : 'mohamedfcis2000@gmail.com',
+      text: (user?.email.isNotEmpty ?? false)
+          ? user!.email
+          : (kDebugMode ? 'mohamedfcis2000@gmail.com' : ''),
     );
   }
 
@@ -86,11 +101,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = authState is Authenticated ? authState.user : null;
 
     setState(() {
-      _companyNameController.text = user?.companyName ?? 'testeing';
+      _companyNameController.text = (user?.companyName.isNotEmpty ?? false)
+          ? user!.companyName
+          : (kDebugMode ? 'testeing' : '');
       _companyPhoneController.text = '';
-      _fullNameController.text = user?.fullName ?? 'mohamed hany';
-      _phoneController.text = user?.phone ?? '+201145330378';
-      _emailController.text = user?.email ?? 'mohamedfcis2000@gmail.com';
+      _fullNameController.text = (user?.fullName.isNotEmpty ?? false)
+          ? user!.fullName
+          : (kDebugMode ? 'mohamed hany' : '');
+      _phoneController.text = (user?.phone.isNotEmpty ?? false)
+          ? user!.phone
+          : (kDebugMode ? '+201145330378' : '');
+      _emailController.text = (user?.email.isNotEmpty ?? false)
+          ? user!.email
+          : (kDebugMode ? 'mohamedfcis2000@gmail.com' : '');
+      _selectedImagePath = user?.avatarPath;
     });
 
     final isAr = context.read<LocaleCubit>().state == 'ar';
@@ -98,6 +122,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context,
       message: isAr ? 'تم تجاهل التغييرات' : 'Changes discarded',
     );
+  }
+
+  Future<void> _pickImage([ImageSource source = ImageSource.gallery]) async {
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (picked != null) {
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName = 'profile_avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final savedImage = await File(picked.path).copy('${appDir.path}/$fileName');
+
+        setState(() {
+          _selectedImagePath = savedImage.path;
+        });
+
+        if (mounted) {
+          context.read<AuthCubit>().updateUserAvatar(savedImage.path);
+          final isAr = context.read<LocaleCubit>().state == 'ar';
+          AppSnackBar.showSuccess(
+            context,
+            message: isAr ? 'تم اختيار وتحديث الصورة بنجاح' : 'Image selected and updated successfully',
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        final isAr = context.read<LocaleCubit>().state == 'ar';
+        AppSnackBar.showError(
+          context,
+          message: isAr ? 'تعذر اختيار الصورة من المعرض' : 'Failed to pick image from gallery',
+        );
+      }
+    }
   }
 
   @override
@@ -173,17 +235,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF131A31) : Colors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: borderColor),
                     ),
-                    child: Icon(
-                      Icons.person_outline_rounded,
-                      size: 22,
-                      color: isDark ? Colors.white70 : AppColors.brandNavy,
-                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: _selectedImagePath != null && File(_selectedImagePath!).existsSync()
+                        ? Image.file(
+                            File(_selectedImagePath!),
+                            fit: BoxFit.cover,
+                          )
+                        : Icon(
+                            Icons.person_outline_rounded,
+                            size: 22,
+                            color: isDark ? Colors.white70 : AppColors.brandNavy,
+                          ),
                   ),
                 ],
               ),
@@ -233,6 +302,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildImageUploadCard(Color surfaceBg, Color borderColor, bool isDark, bool isAr) {
+    final hasImage = _selectedImagePath != null &&
+        _selectedImagePath!.isNotEmpty &&
+        File(_selectedImagePath!).existsSync();
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -242,59 +315,139 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Column(
         children: [
-          // Circular Avatar Placeholder with Gallery Icon
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDark ? const Color(0xFF0F1426) : const Color(0xFFF1F5F9),
-              border: Border.all(color: borderColor, width: 1.5),
-            ),
-            child: Center(
-              child: Icon(
-                Icons.image_outlined,
-                size: 38,
-                color: isDark ? Colors.white38 : Colors.black38,
-              ),
+          // Circular Avatar with Image or Placeholder
+          GestureDetector(
+            onTap: () => _pickImage(ImageSource.gallery),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 104,
+                  height: 104,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isDark ? const Color(0xFF0F1426) : const Color(0xFFF1F5F9),
+                    border: Border.all(
+                      color: hasImage ? const Color(0xFF2563EB) : borderColor,
+                      width: 2,
+                    ),
+                    boxShadow: hasImage
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF2563EB).withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: ClipOval(
+                    child: hasImage
+                        ? Image.file(
+                            File(_selectedImagePath!),
+                            width: 104,
+                            height: 104,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Center(
+                              child: Icon(
+                                Icons.image_outlined,
+                                size: 38,
+                                color: isDark ? Colors.white38 : Colors.black38,
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(
+                              Icons.image_outlined,
+                              size: 38,
+                              color: isDark ? Colors.white38 : Colors.black38,
+                            ),
+                          ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: surfaceBg,
+                        width: 2,
+                      ),
+                    ),
+                    child: Icon(
+                      hasImage ? Icons.edit_rounded : Icons.photo_camera_rounded,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
 
-          // Dashed Dropzone Box
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF0F1426) : const Color(0xFFF8FAFC),
+          // Dashed Dropzone Box (Tappable for Gallery)
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _pickImage(ImageSource.gallery),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark ? const Color(0xFF2A3A60) : const Color(0xFFCBD5E1),
-                style: BorderStyle.solid,
-                width: 1.2,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F1426) : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: hasImage
+                        ? const Color(0xFF2563EB)
+                        : (isDark ? const Color(0xFF2A3A60) : const Color(0xFFCBD5E1)),
+                    style: BorderStyle.solid,
+                    width: 1.2,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      hasImage ? Icons.check_circle_rounded : Icons.photo_library_outlined,
+                      size: 32,
+                      color: hasImage ? AppColors.success : const Color(0xFF2563EB),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      hasImage
+                          ? (isAr ? 'تم اختيار صورة من المعرض' : 'Photo selected from gallery')
+                          : (isAr ? 'اسحب وأفلت صورتك هنا' : 'Drag and drop your image here'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: hasImage
+                            ? (isDark ? AppColors.darkText : AppColors.lightText)
+                            : (isDark ? Colors.white70 : AppColors.brandNavy),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hasImage
+                          ? (isAr ? 'اضغط لتغيير الصورة من المعرض' : 'Tap to choose another from gallery')
+                          : (isAr ? 'أو اضغط للاستعراض من المعرض' : 'or click to browse gallery'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: hasImage
+                            ? const Color(0xFF2563EB)
+                            : (isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint),
+                        fontWeight: hasImage ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  isAr ? 'اسحب وأفلت صورتك هنا' : 'Drag and drop your image here',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : AppColors.brandNavy,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isAr ? 'أو اضغط للاستعراض' : 'or click to browse',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                  ),
-                ),
-              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -313,14 +466,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: _isUploadingImage
                 ? null
                 : () async {
+                    if (!hasImage) {
+                      await _pickImage(ImageSource.gallery);
+                      return;
+                    }
                     setState(() => _isUploadingImage = true);
-                    await Future.delayed(const Duration(milliseconds: 600));
-                    setState(() => _isUploadingImage = false);
+                    await Future.delayed(const Duration(milliseconds: 500));
                     if (mounted) {
-                      AppSnackBar.showSuccess(
-                        context,
-                        message: isAr ? 'تم تحديث الصورة الشخصية' : 'Profile photo updated',
-                      );
+                      final authCubit = context.read<AuthCubit>();
+                      await authCubit.updateUserAvatar(_selectedImagePath!);
+                      if (mounted) {
+                        setState(() => _isUploadingImage = false);
+                        AppSnackBar.showSuccess(
+                          context,
+                          message: isAr ? 'تم تحديث وحفظ الصورة الشخصية بنجاح' : 'Profile photo updated successfully',
+                        );
+                      }
                     }
                   },
             child: _isUploadingImage
@@ -607,6 +768,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         TextFormField(
           controller: controller,
           validator: validator,
+          onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
           style: TextStyle(
             color: isDark ? AppColors.darkText : AppColors.lightText,
             fontSize: 13.5,

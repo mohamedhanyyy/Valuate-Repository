@@ -26,14 +26,13 @@ class ProjectsListScreen extends StatefulWidget {
 class _ProjectsListScreenState extends State<ProjectsListScreen> {
   final _searchController = TextEditingController();
 
-  final List<String> _filters = const [
-    'All',
-    'Residential',
-    'Commercial',
-    'Hospitality',
-    'Industrial',
-    'MixedUse',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProjectsCubit>().filterByAssetType('All');
+    });
+  }
 
   @override
   void dispose() {
@@ -109,102 +108,41 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
 
             return Column(
               children: [
-                // Search & Filter Bar
+                // Search Bar
                 FadeSlideEntrance(
                   duration: const Duration(milliseconds: 450),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _searchController,
-                          onChanged: (val) {
-                            context.read<ProjectsCubit>().searchProjects(val);
-                          },
-                          style: TextStyle(
-                            color: isDark ? AppColors.darkText : AppColors.lightText,
-                            fontSize: 14,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: isAr
-                                ? 'بحث عن مشروع، مطور أو موقع...'
-                                : 'Search project, developer or location...',
-                            prefixIcon: Icon(
-                              Icons.search_rounded,
-                              size: 20,
-                              color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                            ),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear, size: 18),
-                                    onPressed: () {
-                                       _searchController.clear();
-                                      context.read<ProjectsCubit>().searchProjects('');
-                                    },
-                                  )
-                                : null,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (val) {
+                        context.read<ProjectsCubit>().searchProjects(val);
+                      },
+                      onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
+                      style: TextStyle(
+                        color: isDark ? AppColors.darkText : AppColors.lightText,
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: isAr
+                            ? 'بحث عن مشروع، مطور أو موقع...'
+                            : 'Search project, developer or location...',
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          size: 20,
+                          color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
                         ),
-                        const SizedBox(height: 12),
-                        // Filter Chips
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: _filters.map((f) {
-                              final isSelected = state.selectedFilter == f;
-                              String labelText;
-                              if (f == 'All') {
-                                labelText = isAr ? 'الكل' : 'All';
-                              } else if (f == 'Residential') {
-                                labelText = isAr ? 'سكني' : 'Residential';
-                              } else if (f == 'Commercial') {
-                                labelText = isAr ? 'تجاري' : 'Commercial';
-                              } else if (f == 'Hospitality') {
-                                labelText = isAr ? 'ضيافة' : 'Hospitality';
-                              } else if (f == 'Industrial') {
-                                labelText = isAr ? 'صناعي' : 'Industrial';
-                              } else if (f == 'MixedUse') {
-                                labelText = isAr ? 'استخدام مختلط' : 'Mixed-Use';
-                              } else {
-                                labelText = f;
-                              }
-
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ChoiceChip(
-                                  label: Text(
-                                    labelText,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : (isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted),
-                                    ),
-                                  ),
-                                  selected: isSelected,
-                                  selectedColor: AppColors.primaryBlue,
-                                  backgroundColor: isDark
-                                      ? AppColors.darkSurface
-                                      : AppColors.lightSurface,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    side: BorderSide(
-                                      color: isSelected
-                                          ? AppColors.primaryBlue
-                                          : (isDark ? AppColors.darkBorder : AppColors.lightBorder),
-                                    ),
-                                  ),
-                                  onSelected: (_) {
-                                    context.read<ProjectsCubit>().filterByAssetType(f);
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  context.read<ProjectsCubit>().searchProjects('');
+                                },
+                              )
+                            : null,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      ),
                     ),
                   ),
                 ),

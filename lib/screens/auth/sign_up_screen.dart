@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
@@ -24,12 +25,12 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _companyController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _firstNameController = TextEditingController(text: kDebugMode ? 'Mohamed' : null);
+  final _lastNameController = TextEditingController(text: kDebugMode ? 'Hany' : null);
+  final _emailController = TextEditingController(text: kDebugMode ? 'mohamedfcis2000@gmail.com' : null);
+  final _companyController = TextEditingController(text: kDebugMode ? 'Valuate Inc' : null);
+  final _phoneController = TextEditingController(text: kDebugMode ? '+201145330378' : null);
+  final _passwordController = TextEditingController(text: kDebugMode ? 'rgmeigmero2W@edgmorer' : null);
 
   @override
   void dispose() {

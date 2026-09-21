@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
@@ -26,8 +27,13 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'mohamedfcis2000@gmail.com');
-  final _passwordController = TextEditingController(text: 'rgmeigmero2W@edgmorer');
+  final _emailController = TextEditingController(
+    text: kDebugMode ? 'mohamedfcis2000@gmail.com' : null,
+  );
+
+  final _passwordController = TextEditingController(
+    text: kDebugMode ? 'rgmeigmero2W@edgmorer' : null,
+  );
   bool _keepLoggedIn = true;
 
   @override
@@ -40,10 +46,10 @@ class _SignInScreenState extends State<SignInScreen> {
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<AuthCubit>().signIn(
-            email: _emailController.text,
-            password: _passwordController.text,
-            remember: _keepLoggedIn,
-          );
+        email: _emailController.text,
+        password: _passwordController.text,
+        remember: _keepLoggedIn,
+      );
     }
   }
 
@@ -63,10 +69,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 (route) => false,
               );
             } else if (state is AuthError) {
-              AppSnackBar.showError(
-                context,
-                message: state.message,
-              );
+              AppSnackBar.showError(context, message: state.message);
             }
           },
           child: SingleChildScrollView(
@@ -78,10 +81,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ValuateLogo(
-                      height: 32,
-                      isDark: isDark,
-                    ),
+                    ValuateLogo(height: 32, isDark: isDark),
                     const ThemeLangBar(),
                   ],
                 ),
@@ -91,10 +91,14 @@ class _SignInScreenState extends State<SignInScreen> {
                 Container(
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    color: isDark
+                        ? AppColors.darkSurface
+                        : AppColors.lightSurface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                      color: isDark
+                          ? AppColors.darkBorder
+                          : AppColors.lightBorder,
                       width: 1,
                     ),
                   ),
@@ -103,13 +107,14 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-
                         Text(
                           AppStrings.get('signIn', locale: locale),
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            color: isDark ? AppColors.darkText : AppColors.lightText,
+                            color: isDark
+                                ? AppColors.darkText
+                                : AppColors.lightText,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -117,7 +122,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           AppStrings.get('signInLead', locale: locale),
                           style: TextStyle(
                             fontSize: 13,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                            color: isDark
+                                ? AppColors.darkTextMuted
+                                : AppColors.lightTextMuted,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -125,20 +132,31 @@ class _SignInScreenState extends State<SignInScreen> {
                         // Email Field
                         CustomTextField(
                           label: AppStrings.get('emailLabel', locale: locale),
-                          hintText: AppStrings.get('emailPlaceholder', locale: locale),
+                          hintText: AppStrings.get(
+                            'emailPlaceholder',
+                            locale: locale,
+                          ),
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           prefixIcon: Icon(
                             Icons.mail_outline_rounded,
                             size: 18,
-                            color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                            color: isDark
+                                ? AppColors.darkTextFaint
+                                : AppColors.lightTextFaint,
                           ),
                           validator: (val) {
                             if (val == null || val.trim().isEmpty) {
-                              return AppStrings.get('fieldRequired', locale: locale);
+                              return AppStrings.get(
+                                'fieldRequired',
+                                locale: locale,
+                              );
                             }
                             if (!val.contains('@')) {
-                              return AppStrings.get('invalidEmail', locale: locale);
+                              return AppStrings.get(
+                                'invalidEmail',
+                                locale: locale,
+                              );
                             }
                             return null;
                           },
@@ -147,21 +165,35 @@ class _SignInScreenState extends State<SignInScreen> {
 
                         // Password Field
                         CustomTextField(
-                          label: AppStrings.get('passwordLabel', locale: locale),
-                          hintText: AppStrings.get('passwordPlaceholder', locale: locale),
+                          label: AppStrings.get(
+                            'passwordLabel',
+                            locale: locale,
+                          ),
+                          hintText: AppStrings.get(
+                            'passwordPlaceholder',
+                            locale: locale,
+                          ),
                           controller: _passwordController,
                           isPassword: true,
                           prefixIcon: Icon(
                             Icons.lock_outline_rounded,
                             size: 18,
-                            color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                            color: isDark
+                                ? AppColors.darkTextFaint
+                                : AppColors.lightTextFaint,
                           ),
                           validator: (val) {
                             if (val == null || val.trim().isEmpty) {
-                              return AppStrings.get('fieldRequired', locale: locale);
+                              return AppStrings.get(
+                                'fieldRequired',
+                                locale: locale,
+                              );
                             }
                             if (val.length < 6) {
-                              return AppStrings.get('passwordLength', locale: locale);
+                              return AppStrings.get(
+                                'passwordLength',
+                                locale: locale,
+                              );
                             }
                             return null;
                           },
@@ -182,7 +214,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                     value: _keepLoggedIn,
                                     activeColor: AppColors.primaryBlue,
                                     side: BorderSide(
-                                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                                      color: isDark
+                                          ? AppColors.darkBorder
+                                          : AppColors.lightBorder,
                                     ),
                                     onChanged: (val) {
                                       setState(() {
@@ -193,10 +227,15 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  AppStrings.get('keepLoggedIn', locale: locale),
+                                  AppStrings.get(
+                                    'keepLoggedIn',
+                                    locale: locale,
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12.5,
-                                    color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                                    color: isDark
+                                        ? AppColors.darkTextMuted
+                                        : AppColors.lightTextMuted,
                                   ),
                                 ),
                               ],
@@ -206,12 +245,16 @@ class _SignInScreenState extends State<SignInScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => const ForgotPasswordScreen(),
+                                    builder: (_) =>
+                                        const ForgotPasswordScreen(),
                                   ),
                                 );
                               },
                               child: Text(
-                                AppStrings.get('forgotPassword', locale: locale),
+                                AppStrings.get(
+                                  'forgotPassword',
+                                  locale: locale,
+                                ),
                                 style: const TextStyle(
                                   color: AppColors.gold,
                                   fontSize: 12.5,
@@ -244,7 +287,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                 '${AppStrings.get('dontHaveAccount', locale: locale)} ',
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                                  color: isDark
+                                      ? AppColors.darkTextMuted
+                                      : AppColors.lightTextMuted,
                                 ),
                               ),
                               InkWell(
@@ -274,8 +319,6 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: 10),
 
-
-
                 // Legal Links Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -293,8 +336,10 @@ class _SignInScreenState extends State<SignInScreen> {
                         AppStrings.get('termsOfService', locale: locale),
                         style: TextStyle(
                           fontSize: 11.5,
-                          color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                         ),
+                          color: isDark
+                              ? AppColors.darkTextFaint
+                              : AppColors.lightTextFaint,
+                        ),
                       ),
                     ),
                     Padding(
@@ -303,7 +348,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         '•',
                         style: TextStyle(
                           fontSize: 11.5,
-                          color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                          color: isDark
+                              ? AppColors.darkTextFaint
+                              : AppColors.lightTextFaint,
                         ),
                       ),
                     ),
@@ -320,13 +367,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         AppStrings.get('privacyPolicy', locale: locale),
                         style: TextStyle(
                           fontSize: 11.5,
-                          color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                         ),
+                          color: isDark
+                              ? AppColors.darkTextFaint
+                              : AppColors.lightTextFaint,
+                        ),
                       ),
                     ),
                   ],
                 ),
-
               ],
             ),
           ),

@@ -12,6 +12,7 @@ class CustomTextField extends StatefulWidget {
   final void Function(String)? onChanged;
   final String? initialValue;
   final bool enabled;
+  final TapRegionCallback? onTapOutside;
 
   const CustomTextField({
     super.key,
@@ -25,6 +26,7 @@ class CustomTextField extends StatefulWidget {
     this.onChanged,
     this.initialValue,
     this.enabled = true,
+    this.onTapOutside,
   });
 
   @override
@@ -66,6 +68,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
           enabled: widget.enabled,
           validator: widget.validator,
           onChanged: widget.onChanged,
+          onTapOutside: widget.onTapOutside ?? (event) => FocusManager.instance.primaryFocus?.unfocus(),
           style: TextStyle(
             color: isDark ? AppColors.darkText : AppColors.lightText,
             fontSize: 14.5,

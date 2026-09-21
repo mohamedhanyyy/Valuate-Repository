@@ -228,6 +228,15 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> updateUserAvatar(String avatarPath) async {
+    if (state is Authenticated) {
+      final current = (state as Authenticated).user;
+      final updated = current.copyWith(avatarPath: avatarPath);
+      await preferencesService.setUser(updated.toJson());
+      emit(Authenticated(updated));
+    }
+  }
+
   Future<void> signOut() async {
     await preferencesService.clearToken();
     await preferencesService.clearUser();

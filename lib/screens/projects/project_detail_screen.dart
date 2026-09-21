@@ -14,6 +14,7 @@ import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/kpi_metric_tile.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/verdict_badge.dart';
+import 'project_metrics_screen.dart';
 
 class ProjectDetailScreen extends StatelessWidget {
   final FeasibilityStudy study;
@@ -49,6 +50,18 @@ class ProjectDetailScreen extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.tune_rounded, color: AppColors.gold),
+            tooltip: locale == 'ar' ? 'مؤشرات ومواصفات المشروع' : 'Project Metrics',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ProjectMetricsScreen(study: study),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.share_rounded, color: AppColors.gold),
             tooltip: locale == 'ar' ? 'مشاركة ملف PDF' : 'Share PDF Dossier',
@@ -154,6 +167,18 @@ class ProjectDetailScreen extends StatelessWidget {
                 _specRow(locale == 'ar' ? 'الدولة والموقع' : 'Country & Location', '${study.location} (${study.country})', isDark),
                 _divider(isDark),
                 _specRow(locale == 'ar' ? 'هيكل دفع الأرض' : 'Land Payment Mode', study.landPaymentMode, isDark),
+                if (study.landPaymentYears > 0) ...[
+                  _divider(isDark),
+                  _specRow(locale == 'ar' ? 'سنوات سداد الأرض' : 'Land Payment Years', '${study.landPaymentYears} ${locale == 'ar' ? 'سنوات' : 'years'}', isDark),
+                ],
+                if (study.revenueSharePct > 0) ...[
+                  _divider(isDark),
+                  _specRow(locale == 'ar' ? 'حصة الإيرادات' : 'Revenue Share', '${study.revenueSharePct.toStringAsFixed(study.revenueSharePct.truncateToDouble() == study.revenueSharePct ? 0 : 1)}%', isDark),
+                ],
+                if (study.inKindSharePct > 0) ...[
+                  _divider(isDark),
+                  _specRow(locale == 'ar' ? 'الحصة العينية' : 'In-Kind Share', '${study.inKindSharePct.toStringAsFixed(study.inKindSharePct.truncateToDouble() == study.inKindSharePct ? 0 : 1)}%', isDark),
+                ],
                 _divider(isDark),
                 _specRow(AppStrings.get('landArea', locale: locale), '${study.landArea.toStringAsFixed(0)} m²', isDark),
                 _divider(isDark),
@@ -164,6 +189,14 @@ class ProjectDetailScreen extends StatelessWidget {
                 _specRow(AppStrings.get('gfa', locale: locale), '${study.gfa.toStringAsFixed(0)} m²', isDark),
                 _divider(isDark),
                 _specRow(AppStrings.get('breakeven', locale: locale), '${study.breakevenPerSqm.toStringAsFixed(0)} ${study.currency}/m²', isDark),
+                if (study.products.isNotEmpty) ...[
+                  _divider(isDark),
+                  _specRow(
+                    locale == 'ar' ? 'مزيج المنتجات' : 'Product Mix',
+                    study.products.map((p) => '${p.name} (${p.productMixPct.toStringAsFixed(0)}%)').join('، '),
+                    isDark,
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 18),

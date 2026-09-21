@@ -8,6 +8,7 @@ class UserModel {
   final String? token;
   final String preferredCurrency;
   final String preferredUnit;
+  final String? avatarPath;
 
   UserModel({
     required this.id,
@@ -19,6 +20,7 @@ class UserModel {
     this.token,
     this.preferredCurrency = 'SAR',
     this.preferredUnit = 'sqm',
+    this.avatarPath,
   });
 
   String get fullName => '$firstName $lastName'.trim();
@@ -34,6 +36,7 @@ class UserModel {
       token: json['token'],
       preferredCurrency: json['preferred_currency'] ?? json['currency'] ?? 'SAR',
       preferredUnit: json['preferred_unit'] ?? json['unit'] ?? 'sqm',
+      avatarPath: json['avatar_path'] ?? json['avatarPath'],
     );
   }
 
@@ -48,6 +51,7 @@ class UserModel {
       'token': token,
       'preferred_currency': preferredCurrency,
       'preferred_unit': preferredUnit,
+      'avatar_path': avatarPath,
     };
   }
 
@@ -61,6 +65,7 @@ class UserModel {
     String? token,
     String? preferredCurrency,
     String? preferredUnit,
+    String? avatarPath,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -72,6 +77,7 @@ class UserModel {
       token: token ?? this.token,
       preferredCurrency: preferredCurrency ?? this.preferredCurrency,
       preferredUnit: preferredUnit ?? this.preferredUnit,
+      avatarPath: avatarPath ?? this.avatarPath,
     );
   }
 }

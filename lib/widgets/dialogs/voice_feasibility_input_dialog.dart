@@ -684,6 +684,7 @@ class _VoiceFeasibilityInputDialogState
               child: TextField(
                 controller: _transcriptController,
                 maxLines: 3,
+                onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark ? AppColors.darkText : AppColors.lightText,

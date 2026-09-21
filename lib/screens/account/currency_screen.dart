@@ -404,6 +404,7 @@ class _CurrencyScreenState extends State<CurrencyScreen> {
                             child: TextField(
                               controller: _searchController,
                               onChanged: (_) => setState(() {}),
+                              onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: isDark ? AppColors.darkText : AppColors.lightText,

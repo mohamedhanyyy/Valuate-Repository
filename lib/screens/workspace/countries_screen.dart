@@ -319,14 +319,16 @@ class _CountriesScreenState extends State<CountriesScreen> {
                           ),
                         ),
 
+                        const SizedBox(width: 10),
                         // Search Input Field
-                        SizedBox(
-                          width: 260,
-                          height: 38,
-                          child: TextField(
-                            controller: _searchController,
-                            onChanged: (_) => setState(() {}),
-                            style: TextStyle(
+                        Expanded(
+                          child: SizedBox(
+                            height: 38,
+                            child: TextField(
+                              controller: _searchController,
+                              onChanged: (_) => setState(() {}),
+                              onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
+                              style: TextStyle(
                               fontSize: 13,
                               color: isDark ? AppColors.darkText : AppColors.lightText,
                             ),
@@ -359,11 +361,15 @@ class _CountriesScreenState extends State<CountriesScreen> {
                             ),
                           ),
                         ),
+                      ),
                       ],
                     ),
                   ),
 
+
+
                   // Data Table Content
+
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: ConstrainedBox(

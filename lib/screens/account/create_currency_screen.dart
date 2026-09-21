@@ -432,6 +432,7 @@ class _CreateCurrencyScreenState extends State<CreateCurrencyScreen> {
         TextFormField(
           controller: controller,
           validator: validator,
+          onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
           style: TextStyle(
             color: isDark ? AppColors.darkText : AppColors.lightText,
             fontSize: 14,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
@@ -12,6 +13,7 @@ import '../../widgets/common/app_snack_bar.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/dialogs/location_map_picker_dialog.dart';
 import '../../widgets/primary_button.dart';
+import '../projects/project_metrics_screen.dart';
 
 class _SectorDateControllers {
   final TextEditingController salesStart;
@@ -24,10 +26,10 @@ class _SectorDateControllers {
     String salesEndYear = '2029',
     String constStartYear = '2026',
     String constEndYear = '2028',
-  })  : salesStart = TextEditingController(text: salesStartYear),
-        salesEnd = TextEditingController(text: salesEndYear),
-        constStart = TextEditingController(text: constStartYear),
-        constEnd = TextEditingController(text: constEndYear);
+  })  : salesStart = TextEditingController(text: kDebugMode ? salesStartYear : null),
+        salesEnd = TextEditingController(text: kDebugMode ? salesEndYear : null),
+        constStart = TextEditingController(text: kDebugMode ? constStartYear : null),
+        constEnd = TextEditingController(text: kDebugMode ? constEndYear : null);
 
   void dispose() {
     salesStart.dispose();
@@ -49,31 +51,31 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
   int _currentStep = 1; // Step 1: Basic info & Location, Step 2: Sector Dates & Land Details
 
   final _formKey = GlobalKey<FormState>();
-  final _projectNameController = TextEditingController();
+  final _projectNameController = TextEditingController(text: kDebugMode ? 'مشروع برج الأندلس' : null);
   final _developerNameController = TextEditingController();
-  final _locationController = TextEditingController(text: 'الرياض - حي النرجس');
-  final _landAreaController = TextEditingController(text: '5000');
-  final _landCostController = TextEditingController(text: '15000000');
-  final _landPricePerSqmController = TextEditingController(text: '3000');
-  final _landPaymentYearsController = TextEditingController(text: '0');
-  final _constructionCostController = TextEditingController(text: '4200');
-  final _expectedRevenueController = TextEditingController(text: '9800');
-  final _farController = TextEditingController(text: '2.5');
-  final _efficiencyController = TextEditingController(text: '85');
-  final _revenueSharePctController = TextEditingController(text: '15');
-  final _inKindSharePctController = TextEditingController(text: '20');
+  final _locationController = TextEditingController(text: kDebugMode ? 'الرياض - حي النرجس' : null);
+  final _landAreaController = TextEditingController(text: kDebugMode ? '5000' : null);
+  final _landCostController = TextEditingController(text: kDebugMode ? '15000000' : null);
+  final _landPricePerSqmController = TextEditingController(text: kDebugMode ? '3000' : null);
+  final _landPaymentYearsController = TextEditingController(text: kDebugMode ? '0' : null);
+  final _constructionCostController = TextEditingController(text: kDebugMode ? '4200' : null);
+  final _expectedRevenueController = TextEditingController(text: kDebugMode ? '9800' : null);
+  final _farController = TextEditingController(text: kDebugMode ? '2.5' : null);
+  final _efficiencyController = TextEditingController(text: kDebugMode ? '85' : null);
+  final _revenueSharePctController = TextEditingController(text: kDebugMode ? '15' : null);
+  final _inKindSharePctController = TextEditingController(text: kDebugMode ? '20' : null);
 
   // Selected Sectors (Multi-select)
   final List<String> _mainSectors = const ['سكني', 'تجاري', 'ضيافة'];
-  final Set<String> _selectedSectors = {'سكني', 'تجاري', 'ضيافة'};
+  final Set<String> _selectedSectors = kDebugMode ? {'سكني'} : {};
   final Map<String, _SectorDateControllers> _sectorControllers = {};
   final Map<String, TextEditingController> _sectorPercentageControllers = {};
 
-  String _selectedType = 'On Plan Sales';
-  String _selectedCountry = 'المملكة العربية السعودية';
-  String _selectedCity = 'الرياض';
-  String _landPaymentMode = 'حصة عينية'; // حصة عينية, حصة الإيرادات, دفع ثمن الأرض
-  String? _mapGisPoint = '24.8423, 46.6631';
+  String _selectedType = kDebugMode ? 'On Plan Sales' : '';
+  String _selectedCountry = kDebugMode ? 'المملكة العربية السعودية' : '';
+  String _selectedCity = kDebugMode ? 'الرياض' : '';
+  final Set<String> _selectedLandPaymentModes = kDebugMode ? {'دفع ثمن الأرض'} : {};
+  String? _mapGisPoint = kDebugMode ? '24.8423, 46.6631' : '';
 
   final List<String> _typesList = const [
     'On Plan Sales',
@@ -101,18 +103,23 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
   void initState() {
     super.initState();
     final authState = context.read<AuthCubit>().state;
-    final defaultDevName = authState is Authenticated ? authState.user.fullName : 'mohamed hany';
+    final defaultDevName = authState is Authenticated
+        ? authState.user.fullName
+        : (kDebugMode ? 'mohamed hany' : '');
     _developerNameController.text = defaultDevName;
 
-    // Initialize controllers for default selected sectors
+    // Initialize controllers for sectors
     for (final s in _mainSectors) {
       _sectorControllers[s] = _SectorDateControllers();
-      _sectorPercentageControllers[s] = TextEditingController(text: '0');
+    }
+    if (kDebugMode) {
+      _sectorPercentageControllers['سكني'] = TextEditingController(text: '100');
     }
   }
 
   @override
   void dispose() {
+
     _projectNameController.dispose();
     _developerNameController.dispose();
     _locationController.dispose();
@@ -150,22 +157,28 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
   void _onToggleSector(String sector) {
     setState(() {
       if (_selectedSectors.contains(sector)) {
-        if (_selectedSectors.length > 1) {
-          _selectedSectors.remove(sector);
-          _sectorControllers[sector]?.dispose();
-          _sectorControllers.remove(sector);
-        } else {
-          AppSnackBar.showWarning(
-            context,
-            message: 'يجب اختيار قطاع واحد على الأقل للمشروع',
-          );
-        }
+        _selectedSectors.remove(sector);
+        _sectorControllers[sector]?.dispose();
+        _sectorControllers.remove(sector);
       } else {
         _selectedSectors.add(sector);
         _sectorControllers[sector] = _SectorDateControllers();
         if (!_sectorPercentageControllers.containsKey(sector)) {
-          _sectorPercentageControllers[sector] = TextEditingController(text: '0');
+          final defaultPct = _selectedSectors.length == 1 ? '100' : '0';
+          _sectorPercentageControllers[sector] = TextEditingController(text: defaultPct);
+        } else if (_selectedSectors.length == 1) {
+          _sectorPercentageControllers[sector]?.text = '100';
         }
+      }
+    });
+  }
+
+  void _onToggleLandPaymentMode(String mode) {
+    setState(() {
+      if (_selectedLandPaymentModes.contains(mode)) {
+        _selectedLandPaymentModes.remove(mode);
+      } else {
+        _selectedLandPaymentModes.add(mode);
       }
     });
   }
@@ -198,6 +211,19 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
 
   void _saveProject() {
     if (_formKey.currentState?.validate() ?? false) {
+      final locale = context.read<LocaleCubit>().state;
+      final isAr = locale == 'ar';
+
+      if (_selectedLandPaymentModes.isEmpty) {
+        AppSnackBar.showError(
+          context,
+          message: isAr
+              ? 'يرجى اختيار طريقة دفع واحدة على الأقل للأرض'
+              : 'Please select at least one land payment structure',
+        );
+        return;
+      }
+
       final landArea = double.tryParse(_landAreaController.text) ?? 5000.0;
       final landCost = double.tryParse(_landCostController.text) ?? 15000000.0;
       final constCost = double.tryParse(_constructionCostController.text) ?? 4200.0;
@@ -255,11 +281,11 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         id: 'prj_${DateTime.now().millisecondsSinceEpoch}',
         title: _projectNameController.text.trim().isNotEmpty
             ? _projectNameController.text.trim()
-            : 'مشروع عقاري جديد',
+            : (kDebugMode ? 'مشروع برج الأندلس' : 'مشروع عقاري جديد'),
         developerName: _developerNameController.text.trim().isNotEmpty
             ? _developerNameController.text.trim()
-            : 'mohamed hany',
-        assetType: _selectedSectors.first,
+            : (kDebugMode ? 'mohamed hany' : ''),
+        assetType: _selectedSectors.isNotEmpty ? _selectedSectors.first : 'سكني',
         selectedSectors: _selectedSectors.toList(),
         sectorPercentages: percentages,
         sectorTimelines: timelines,
@@ -269,13 +295,24 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
             ? _locationController.text.trim()
             : '$_selectedCity, $_selectedCountry',
         mapLocation: _mapGisPoint,
-        landPaymentMode: _landPaymentMode,
+        landPaymentMode: _selectedLandPaymentModes.join(' + '),
+        landPaymentModes: _selectedLandPaymentModes.toList(),
+        revenueSharePct: _selectedLandPaymentModes.contains('حصة الإيرادات')
+            ? (double.tryParse(_revenueSharePctController.text) ?? 0.0)
+            : 0.0,
+        inKindSharePct: _selectedLandPaymentModes.contains('حصة عينية')
+            ? (double.tryParse(_inKindSharePctController.text) ?? 0.0)
+            : 0.0,
         landArea: landArea,
         far: far,
         efficiencyPct: efficiency,
-        landCost: _landPaymentMode == 'دفع ثمن الأرض' ? landCost : 0.0,
-        landPricePerSqm: double.tryParse(_landPricePerSqmController.text),
-        landPaymentYears: int.tryParse(_landPaymentYearsController.text) ?? 0,
+        landCost: _selectedLandPaymentModes.contains('دفع ثمن الأرض') ? landCost : 0.0,
+        landPricePerSqm: _selectedLandPaymentModes.contains('دفع ثمن الأرض')
+            ? double.tryParse(_landPricePerSqmController.text)
+            : null,
+        landPaymentYears: _selectedLandPaymentModes.contains('دفع ثمن الأرض')
+            ? (int.tryParse(_landPaymentYearsController.text) ?? 0)
+            : 0,
         constructionCostPerSqm: constCost,
         expectedRevenuePerSqm: revenue,
         developmentMonths: months,
@@ -289,7 +326,12 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         message: AppStrings.get('studySavedSuccess', locale: context.read<LocaleCubit>().state),
       );
 
-      Navigator.pop(context, study);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProjectMetricsScreen(study: study),
+        ),
+      );
     }
   }
 
@@ -819,6 +861,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   Expanded(
                     child: TextField(
                       controller: _locationController,
+                      onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
                       style: TextStyle(
                         color: isDark ? AppColors.darkText : AppColors.lightText,
                         fontSize: 14,
@@ -897,9 +940,9 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
           spacing: 10,
           runSpacing: 10,
           children: _paymentModes.map((mode) {
-            final isSel = _landPaymentMode == mode;
+            final isSel = _selectedLandPaymentModes.contains(mode);
             return InkWell(
-              onTap: () => setState(() => _landPaymentMode = mode),
+              onTap: () => _onToggleLandPaymentMode(mode),
               borderRadius: BorderRadius.circular(24),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -941,24 +984,8 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Dynamic Field based on Land Payment Mode
-        if (_landPaymentMode == 'حصة عينية') ...[
-          _fieldLabel('of BUA %', isDark),
-          const SizedBox(height: 6),
-          CustomTextField(
-            controller: _inKindSharePctController,
-            hintText: isAr ? 'أدخل عدد الوحدات' : 'Enter number of units / % of BUA',
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-        ] else if (_landPaymentMode == 'حصة الإيرادات') ...[
-          _fieldLabel(isAr ? '% من إجمالي الإيرادات' : '% of Gross Revenue', isDark),
-          const SizedBox(height: 6),
-          CustomTextField(
-            controller: _revenueSharePctController,
-            hintText: isAr ? 'أدخل مبلغ الإيرادات' : 'Enter revenue amount',
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-        ] else if (_landPaymentMode == 'دفع ثمن الأرض') ...[
+        // Dynamic Fields based on Selected Land Payment Modes
+        if (_selectedLandPaymentModes.contains('دفع ثمن الأرض')) ...[
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1031,6 +1058,64 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                 ),
               ),
             ],
+          ),
+        ],
+
+        if (_selectedLandPaymentModes.contains('دفع ثمن الأرض') &&
+            (_selectedLandPaymentModes.contains('حصة الإيرادات') ||
+             _selectedLandPaymentModes.contains('حصة عينية')))
+          const SizedBox(height: 14),
+
+        if (_selectedLandPaymentModes.contains('حصة الإيرادات') &&
+            _selectedLandPaymentModes.contains('حصة عينية')) ...[
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _fieldLabel(isAr ? '% من إجمالي الإيرادات' : '% of Gross Revenue', isDark),
+                    const SizedBox(height: 6),
+                    CustomTextField(
+                      controller: _revenueSharePctController,
+                      hintText: isAr ? 'أدخل نسبة الإيرادات' : 'Enter revenue percentage',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _fieldLabel(isAr ? '% من مساحة البناء (حصة عينية)' : '% of BUA (In-Kind Share)', isDark),
+                    const SizedBox(height: 6),
+                    CustomTextField(
+                      controller: _inKindSharePctController,
+                      hintText: isAr ? 'أدخل نسبة الحصة العينية' : 'Enter in-kind percentage',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ] else if (_selectedLandPaymentModes.contains('حصة الإيرادات')) ...[
+          _fieldLabel(isAr ? '% من إجمالي الإيرادات' : '% of Gross Revenue', isDark),
+          const SizedBox(height: 6),
+          CustomTextField(
+            controller: _revenueSharePctController,
+            hintText: isAr ? 'أدخل نسبة الإيرادات' : 'Enter revenue percentage',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+        ] else if (_selectedLandPaymentModes.contains('حصة عينية')) ...[
+          _fieldLabel(isAr ? '% من مساحة البناء (حصة عينية)' : '% of BUA (In-Kind Share)', isDark),
+          const SizedBox(height: 6),
+          CustomTextField(
+            controller: _inKindSharePctController,
+            hintText: isAr ? 'أدخل نسبة الحصة العينية' : 'Enter in-kind percentage',
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
         ],
 

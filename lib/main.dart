@@ -90,6 +90,13 @@ class _ValuateAppView extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      builder: (context, child) {
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: child,
+        );
+      },
       home: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
           if (!preferencesService.isOnboardingCompleted()) {

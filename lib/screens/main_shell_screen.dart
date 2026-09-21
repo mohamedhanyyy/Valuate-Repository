@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/constants/app_colors.dart';
@@ -15,6 +16,7 @@ import 'calculator/feasibility_calculator_screen.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'legal/privacy_policy_screen.dart';
 import 'legal/terms_of_service_screen.dart';
+import 'market/market_intelligence_screen.dart';
 import 'projects/projects_list_screen.dart';
 import 'settings/settings_screen.dart';
 import 'workspace/consolidations_screen.dart';
@@ -45,15 +47,18 @@ class _MainShellScreenState extends State<MainShellScreen> {
     final authState = context.watch<AuthCubit>().state;
     final userName = authState is Authenticated ? authState.user.fullName : 'mohamed hany';
     final userEmail = authState is Authenticated ? authState.user.email : 'mohamedfcis2000@gmail.com';
+    final userAvatar = authState is Authenticated ? authState.user.avatarPath : null;
+    final hasAvatar = userAvatar != null && userAvatar.isNotEmpty && File(userAvatar).existsSync();
 
     final screens = [
       DashboardScreen(onTabChange: _onTabSelect),
       const FeasibilityCalculatorScreen(),
       ProjectsListScreen(onNavigateTab: _onTabSelect),
-      const CountriesScreen(),
+      const MarketIntelligenceScreen(),
       const SettingsScreen(),
       const ReportsScreen(),
       const ConsolidationsScreen(),
+      const CountriesScreen(),
     ];
 
     return Scaffold(
@@ -76,7 +81,29 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ValuateLogo(height: 28, isDark: isDark),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ValuateLogo(height: 28, isDark: isDark),
+                        if (hasAvatar)
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.gold,
+                                width: 1.5,
+                              ),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.file(
+                              File(userAvatar),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       userName,
@@ -166,12 +193,21 @@ class _MainShellScreenState extends State<MainShellScreen> {
                       },
                     ),
                     _drawerItem(
-                      icon: Icons.public_rounded,
-                      title: locale == 'ar' ? 'الدول' : 'Countries',
+                      icon: Icons.trending_up_rounded,
+                      title: locale == 'ar' ? 'المؤشرات' : 'Intelligence',
                       isSelected: _currentIndex == 3,
                       onTap: () {
                         Navigator.pop(context);
                         _onTabSelect(3);
+                      },
+                    ),
+                    _drawerItem(
+                      icon: Icons.public_rounded,
+                      title: locale == 'ar' ? 'الدول' : 'Countries',
+                      isSelected: _currentIndex == 7,
+                      onTap: () {
+                        Navigator.pop(context);
+                        _onTabSelect(7);
                       },
                     ),
 

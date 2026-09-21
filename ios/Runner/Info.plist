@@ -79,5 +79,9 @@
 	<string>Valuate needs microphone access to record your voice notes for automated real estate feasibility calculations.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Valuate uses speech recognition to transcribe your spoken real estate project parameters into calculator fields.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Valuate needs access to your photos to choose a profile picture.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Valuate needs access to your camera to take a profile picture.</string>
 </dict>
 </plist>

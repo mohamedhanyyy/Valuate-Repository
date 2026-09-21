@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
@@ -16,9 +17,9 @@ class ChangePasswordScreen extends StatefulWidget {
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _oldPasswordController = TextEditingController();
-  final _newPasswordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  final _oldPasswordController = TextEditingController(text: kDebugMode ? 'rgmeigmero2W@edgmorer' : null);
+  final _newPasswordController = TextEditingController(text: kDebugMode ? 'rgmeigmero2W@edgmorer' : null);
+  final _confirmPasswordController = TextEditingController(text: kDebugMode ? 'rgmeigmero2W@edgmorer' : null);
 
   bool _obscureOld = true;
   bool _obscureNew = true;
@@ -352,6 +353,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       controller: controller,
       obscureText: obscure,
       validator: validator,
+      onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
       style: TextStyle(
         color: isDark ? AppColors.darkText : AppColors.lightText,
         fontSize: 14,

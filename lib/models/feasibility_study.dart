@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'project_product.dart';
 
 enum VerdictType { go, caution, noGo }
 
@@ -42,11 +43,15 @@ class FeasibilityStudy {
   final List<String> selectedSectors; // e.g. ['سكني', 'تجاري', 'ضيافة']
   final Map<String, double> sectorPercentages; // e.g. {'سكني': 50, 'تجاري': 30, 'ضيافة': 20}
   final List<SectorTimeline> sectorTimelines; // Dynamic timeline for each selected sector
+  final List<ProjectProduct> products; // Project-Mix / Metrics Products
   final String projectType; // Sell, Rent, Hold, Mixed
   final String country; // Saudi Arabia, UAE, Egypt, Qatar, etc.
   final String location; // Riyadh, Dubai, Cairo, etc.
   final String? mapLocation; // Coordinates or specific map point
-  final String landPaymentMode; // دفع ثمن الأرض, حصة الإيرادات, حصة عينية
+  final String landPaymentMode; // دفع ثمن الأرض, حصة الإيرادات, حصة عينية (or combined)
+  final List<String> landPaymentModes; // e.g. ['دفع ثمن الأرض', 'حصة الإيرادات']
+  final double revenueSharePct; // e.g. 15.0 (%)
+  final double inKindSharePct; // e.g. 20.0 (%)
   final double landArea; // in sqm or sqft
   final double far; // Floor Area Ratio e.g. 2.5
   final double efficiencyPct; // e.g. 85%
@@ -69,11 +74,15 @@ class FeasibilityStudy {
     List<String>? selectedSectors,
     Map<String, double>? sectorPercentages,
     List<SectorTimeline>? sectorTimelines,
+    this.products = const [],
     this.projectType = 'Sell',
     this.country = 'Saudi Arabia',
     this.location = 'Riyadh, Saudi Arabia',
     this.mapLocation,
     this.landPaymentMode = 'دفع ثمن الأرض',
+    List<String>? landPaymentModes,
+    this.revenueSharePct = 0.0,
+    this.inKindSharePct = 0.0,
     required this.landArea,
     this.far = 2.4,
     this.efficiencyPct = 85.0,
@@ -93,6 +102,7 @@ class FeasibilityStudy {
             (selectedSectors != null
                 ? selectedSectors.map((s) => SectorTimeline(sector: s)).toList()
                 : [SectorTimeline(sector: assetType)]),
+        landPaymentModes = landPaymentModes ?? [landPaymentMode],
         createdAt = createdAt ?? DateTime.now();
 
   // Calculated Built-up Area (BUA)
@@ -247,6 +257,9 @@ class FeasibilityStudy {
     String? location,
     String? mapLocation,
     String? landPaymentMode,
+    List<String>? landPaymentModes,
+    double? revenueSharePct,
+    double? inKindSharePct,
     double? landArea,
     double? far,
     double? efficiencyPct,
@@ -254,6 +267,7 @@ class FeasibilityStudy {
     double? landPricePerSqm,
     int? landPaymentYears,
     double? constructionCostPerSqm,
+    List<ProjectProduct>? products,
     double? softCostPct,
     double? contingencyPct,
     double? expectedRevenuePerSqm,
@@ -269,11 +283,15 @@ class FeasibilityStudy {
       selectedSectors: selectedSectors ?? this.selectedSectors,
       sectorPercentages: sectorPercentages ?? this.sectorPercentages,
       sectorTimelines: sectorTimelines ?? this.sectorTimelines,
+      products: products ?? this.products,
       projectType: projectType ?? this.projectType,
       country: country ?? this.country,
       location: location ?? this.location,
       mapLocation: mapLocation ?? this.mapLocation,
       landPaymentMode: landPaymentMode ?? this.landPaymentMode,
+      landPaymentModes: landPaymentModes ?? this.landPaymentModes,
+      revenueSharePct: revenueSharePct ?? this.revenueSharePct,
+      inKindSharePct: inKindSharePct ?? this.inKindSharePct,
       landArea: landArea ?? this.landArea,
       far: far ?? this.far,
       efficiencyPct: efficiencyPct ?? this.efficiencyPct,
@@ -322,6 +340,20 @@ class FeasibilityStudy {
           .toList();
     }
 
+    List<ProjectProduct>? productList;
+    if (json['products'] != null) {
+      productList = (json['products'] as List)
+          .map((e) => ProjectProduct.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+
+    List<String>? paymentModes;
+    if (json['land_payment_modes'] != null) {
+      paymentModes = List<String>.from(json['land_payment_modes']);
+    } else if (json['landPaymentModes'] != null) {
+      paymentModes = List<String>.from(json['landPaymentModes']);
+    }
+
     return FeasibilityStudy(
       id: json['id'] ?? 'std_${DateTime.now().millisecondsSinceEpoch}',
       title: json['title'] ?? 'Untitled Study',
@@ -330,11 +362,15 @@ class FeasibilityStudy {
       selectedSectors: sectors,
       sectorPercentages: sectorPercentagesMap,
       sectorTimelines: timelines,
+      products: productList ?? const [],
       projectType: json['project_type'] ?? json['projectType'] ?? json['type'] ?? 'Sell',
       country: json['country'] ?? 'Saudi Arabia',
       location: json['location'] ?? 'Riyadh, Saudi Arabia',
       mapLocation: json['map_location'] ?? json['mapLocation'],
       landPaymentMode: json['land_payment_mode'] ?? json['landPaymentMode'] ?? 'دفع ثمن الأرض',
+      landPaymentModes: paymentModes,
+      revenueSharePct: (json['revenue_share_pct'] ?? json['revenueSharePct'] ?? 0.0).toDouble(),
+      inKindSharePct: (json['in_kind_share_pct'] ?? json['inKindSharePct'] ?? 0.0).toDouble(),
       landArea: (json['land_area'] ?? json['landArea'] ?? 2000.0).toDouble(),
       far: (json['far'] ?? 2.4).toDouble(),
       efficiencyPct: (json['efficiency_pct'] ?? json['efficiencyPct'] ?? 85.0).toDouble(),
@@ -371,11 +407,15 @@ class FeasibilityStudy {
       'selected_sectors': selectedSectors,
       'sector_percentages': sectorPercentages,
       'sector_timelines': sectorTimelines.map((t) => t.toJson()).toList(),
+      'products': products.map((p) => p.toJson()).toList(),
       'project_type': projectType,
       'country': country,
       'location': location,
       'map_location': mapLocation,
       'land_payment_mode': landPaymentMode,
+      'land_payment_modes': landPaymentModes,
+      'revenue_share_pct': revenueSharePct,
+      'in_kind_share_pct': inKindSharePct,
       'land_area': landArea,
       'far': far,
       'efficiency_pct': efficiencyPct,
