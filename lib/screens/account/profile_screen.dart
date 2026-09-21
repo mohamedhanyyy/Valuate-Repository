@@ -169,7 +169,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isAr = locale == 'ar';
 
     final surfaceBg = isDark ? const Color(0xFF131A31) : Colors.white;
-    final bannerBg = isDark ? const Color(0xFF161F38) : const Color(0xFFF1F5F9);
     final borderColor = isDark ? const Color(0xFF1E2A4A) : const Color(0xFFE2E8F0);
     final inputBg = isDark ? const Color(0xFF0F1426) : const Color(0xFFF8FAFC);
 
@@ -201,63 +200,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top Banner Card (مساحة العمل / الملف الشخصي - الملف الشخصي)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-              decoration: BoxDecoration(
-                color: bannerBg,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: borderColor, width: 1),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isAr ? 'مساحة العمل  /  الملف الشخصي' : 'Workspace  /  Profile',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        isAr ? 'الملف الشخصي' : 'Profile',
-                        style: TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : AppColors.brandNavy,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF131A31) : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: borderColor),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: _selectedImagePath != null && File(_selectedImagePath!).existsSync()
-                        ? Image.file(
-                            File(_selectedImagePath!),
-                            fit: BoxFit.cover,
-                          )
-                        : Icon(
-                            Icons.person_outline_rounded,
-                            size: 22,
-                            color: isDark ? Colors.white70 : AppColors.brandNavy,
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
 
             // Main Content Area: Responsive 2-Column / Stack
             LayoutBuilder(

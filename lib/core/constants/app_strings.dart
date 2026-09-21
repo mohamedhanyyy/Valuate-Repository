@@ -6,8 +6,6 @@ class AppStrings {
       'brandSubtitle': 'Real Estate Intelligence',
       'brandTagline': "The MENA region's first automated feasibility study platform for real-estate.",
       'brandDescription': 'Model construction costs, revenue phasing, and investment returns in minutes — built on live regional market data, not assumptions.',
-      'feature1': 'Quick Go-or-No-Go Calculator, automated calculations, and customized reports.',
-      'feature2': 'Track your sales, costs, revenues — all in one consolidated dashboard.',
       'copyright': '© 2026 Gateway Financials',
 
       // Auth - Common
@@ -172,8 +170,6 @@ class AppStrings {
       'brandSubtitle': 'ذكاء الاستثمار العقاري',
       'brandTagline': 'أول منصة مؤتمتة لدراسات الجدوى العقارية في منطقة الشرق الأوسط وشمال أفريقيا.',
       'brandDescription': 'نمذجة تكاليف البناء، ومراحل الإيرادات، وعوائد الاستثمار في دقائق — مبنية على بيانات السوق الإقليمية الحية، وليس التقديرات.',
-      'feature1': 'حاسبة سريعة لقرار المضي قدماً (Go/No-Go)، وحسابات مؤتمتة، وتقارير مخصصة.',
-      'feature2': 'تتبع مبيعاتك وتكاليفك وإيراداتك — كل ذلك في لوحة تحكم واحدة موحدة.',
       'copyright': '© 2026 جيتواي فاينانشالز',
 
       // Auth - Common
