@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/constants/app_colors.dart';
 import '../../core/services/pdf_export_service.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/projects/projects_cubit.dart';
@@ -331,6 +332,12 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   ),
                   const SizedBox(width: 8),
 
+                  // Decision Badge if evaluated (GO / CAUTION / NO-GO)
+                  if (isEvaluated) ...[
+                    _buildDecisionBadge(study, isDark),
+                    const SizedBox(width: 6),
+                  ],
+
                   // Status Badge (Slide 3: Initialized vs Evaluated)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -460,7 +467,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
 
               // Timing & Details Bar (Slide 3: Start At, Sales Start At)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF0E1528) : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(8),
@@ -472,7 +479,7 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                   children: [
                     Icon(
                       Icons.calendar_today_rounded,
-                      size: 13,
+                      size: 14,
                       color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF2563EB),
                     ),
                     const SizedBox(width: 6),
@@ -484,12 +491,12 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                         color: isDark ? Colors.white70 : const Color(0xFF334155),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Text('•', style: TextStyle(color: isDark ? Colors.white38 : const Color(0xFF94A3B8))),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Icon(
                       Icons.point_of_sale_rounded,
-                      size: 13,
+                      size: 14,
                       color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0284C7),
                     ),
                     const SizedBox(width: 6),
@@ -501,26 +508,6 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
                         color: isDark ? Colors.white70 : const Color(0xFF334155),
                       ),
                     ),
-                    const Spacer(),
-                    // Decision Pill if evaluated
-                    if (isEvaluated)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: study.isGoDecision
-                              ? const Color(0xFF059669).withValues(alpha: 0.2)
-                              : const Color(0xFFDC2626).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          study.isGoDecision ? 'GO' : 'NO-GO',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: study.isGoDecision ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -669,6 +656,53 @@ class _ProjectsListScreenState extends State<ProjectsListScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDecisionBadge(FeasibilityStudy study, bool isDark) {
+    Color color;
+    String text;
+    IconData icon;
+    switch (study.verdict) {
+      case VerdictType.go:
+        color = const Color(0xFF10B981);
+        text = 'GO';
+        icon = Icons.check_circle_rounded;
+        break;
+      case VerdictType.caution:
+        color = isDark ? const Color(0xFFFBBF24) : AppColors.warning;
+        text = 'CAUTION';
+        icon = Icons.warning_amber_rounded;
+        break;
+      case VerdictType.noGo:
+        color = const Color(0xFFEF4444);
+        text = 'NO-GO';
+        icon = Icons.cancel_rounded;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

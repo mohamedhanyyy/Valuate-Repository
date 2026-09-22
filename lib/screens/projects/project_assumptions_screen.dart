@@ -346,9 +346,20 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
                             controller: _salesTrendControllers[y],
                             keyboardType: TextInputType.number,
                             onChanged: (_) => setState(() {}),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.darkText : AppColors.lightText,
+                            ),
                             decoration: InputDecoration(
+                              isDense: true,
                               suffixText: '%',
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              suffixStyle: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                               filled: true,
                               fillColor: isDark ? AppColors.darkSurface : Colors.white,
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -401,7 +412,7 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 3,
+                          flex: 11,
                           child: Text(
                             _costCentreLabel(cat, isAr),
                             style: TextStyle(
@@ -413,12 +424,23 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          flex: 2,
+                          flex: 9,
                           child: TextFormField(
                             controller: _hardCostControllers[cat],
                             keyboardType: TextInputType.number,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? AppColors.darkText : AppColors.lightText,
+                            ),
                             decoration: InputDecoration(
+                              isDense: true,
                               suffixText: '${_study.currency}/m²',
+                              suffixStyle: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                              ),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                               filled: true,
                               fillColor: isDark ? AppColors.darkSurface : Colors.white,
@@ -463,14 +485,17 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              _costCentreLabel(cat, isAr),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: isDark ? AppColors.darkText : AppColors.lightText,
+                            Expanded(
+                              child: Text(
+                                _costCentreLabel(cat, isAr),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppColors.darkText : AppColors.lightText,
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 8),
                             Text(
                               '${rowTotal.toStringAsFixed(0)}% / 100%',
                               style: TextStyle(
@@ -486,16 +511,31 @@ class _ProjectAssumptionsScreenState extends State<ProjectAssumptionsScreen> {
                           children: _years.map((y) {
                             return Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 3),
+                                padding: const EdgeInsets.symmetric(horizontal: 2),
                                 child: TextFormField(
                                   controller: _sCurveControllers[cat]?[y],
                                   keyboardType: TextInputType.number,
                                   onChanged: (_) => setState(() {}),
                                   textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? AppColors.darkText : AppColors.lightText,
+                                  ),
                                   decoration: InputDecoration(
+                                    isDense: true,
                                     labelText: y.toString(),
+                                    labelStyle: TextStyle(
+                                      fontSize: 9.5,
+                                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                                    ),
                                     suffixText: '%',
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                    suffixStyle: TextStyle(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
                                     filled: true,
                                     fillColor: isDark ? AppColors.darkSurface : Colors.white,
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),

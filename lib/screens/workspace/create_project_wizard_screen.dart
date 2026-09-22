@@ -443,34 +443,6 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
             color: isDark ? AppColors.darkText : AppColors.lightText,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.language_rounded, size: 14, color: AppColors.gold),
-                const SizedBox(width: 4),
-                Text(
-                  isAr ? 'AR' : 'EN',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? AppColors.darkText : AppColors.lightText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
       body: Form(
         key: _formKey,
@@ -493,7 +465,6 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
         ),
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
           color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
           border: Border(
@@ -502,48 +473,61 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
             ),
           ),
         ),
-        child: Row(
-          children: [
-            if (_currentStep == 2)
-              Expanded(
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _currentStep = 1;
-                    });
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        isAr ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_rounded,
-                        size: 14,
-                        color: isDark ? AppColors.darkText : AppColors.lightText,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        isAr ? 'السابق' : 'Previous',
-                        style: TextStyle(
-                          color: isDark ? AppColors.darkText : AppColors.lightText,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            child: Row(
+              children: [
+                if (_currentStep == 2)
+                  Expanded(
+                    flex: 1,
+                    child: SizedBox(
+                      height: 50,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          side: BorderSide(
+                            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _currentStep = 1;
+                          });
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isAr ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_rounded,
+                              size: 14,
+                              color: isDark ? AppColors.darkText : AppColors.lightText,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  isAr ? 'السابق' : 'Previous',
+                                  style: TextStyle(
+                                    color: isDark ? AppColors.darkText : AppColors.lightText,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            if (_currentStep == 2) const SizedBox(width: 12),
-            Expanded(
+                if (_currentStep == 2) const SizedBox(width: 12),
+                Expanded(
               flex: 2,
               child: PrimaryButton(
                 text: _currentStep == 1
@@ -604,8 +588,10 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildWizardHeader(bool isDark, bool isAr) {
     return Column(
@@ -724,12 +710,12 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: isSel
-                          ? Colors.white
+                          ? (isDark ? Colors.white : AppColors.brandNavy)
                           : (isDark ? const Color(0xFF131A31) : const Color(0xFFE2E8F0)),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: isSel
-                            ? Colors.white
+                            ? (isDark ? Colors.white : AppColors.brandNavy)
                             : (isDark ? Colors.white24 : AppColors.lightBorder),
                         width: 1,
                       ),
@@ -750,7 +736,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                         fontSize: 13.5,
                         fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
                         color: isSel
-                            ? const Color(0xFF0F1426)
+                            ? (isDark ? const Color(0xFF0F1426) : Colors.white)
                             : (isDark ? Colors.white70 : AppColors.lightText),
                       ),
                     ),
@@ -1137,12 +1123,12 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 decoration: BoxDecoration(
                   color: isSel
-                      ? Colors.white
+                      ? (isDark ? Colors.white : AppColors.brandNavy)
                       : (isDark ? const Color(0xFF131A31) : const Color(0xFFE2E8F0)),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
                     color: isSel
-                        ? Colors.white
+                        ? (isDark ? Colors.white : AppColors.brandNavy)
                         : (isDark ? Colors.white24 : AppColors.lightBorder),
                     width: 1,
                   ),
@@ -1162,7 +1148,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                     fontSize: 13.5,
                     fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
                     color: isSel
-                        ? const Color(0xFF0F1426)
+                        ? (isDark ? const Color(0xFF0F1426) : Colors.white)
                         : (isDark ? Colors.white70 : AppColors.lightText),
                   ),
                 ),
@@ -1360,7 +1346,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _fieldLabel(
-                      isAr ? 'سنة بدء مبيعات $sectorLabel *' : '$sectorLabel Sales Start *',
+                      isAr ? 'بدء المبيعات *' : 'Sales Start *',
                       isDark,
                     ),
                     const SizedBox(height: 6),
@@ -1388,7 +1374,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _fieldLabel(
-                      isAr ? 'سنة انتهاء مبيعات $sectorLabel *' : '$sectorLabel Sales End *',
+                      isAr ? 'انتهاء المبيعات *' : 'Sales End *',
                       isDark,
                     ),
                     const SizedBox(height: 6),
@@ -1426,7 +1412,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _fieldLabel(
-                      isAr ? 'سنة بدء بناء $sectorLabel *' : '$sectorLabel Const Start *',
+                      isAr ? 'بدء البناء *' : 'Const Start *',
                       isDark,
                     ),
                     const SizedBox(height: 6),
@@ -1454,7 +1440,7 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _fieldLabel(
-                      isAr ? 'سنة انتهاء بناء $sectorLabel *' : '$sectorLabel Const End *',
+                      isAr ? 'انتهاء البناء *' : 'Const End *',
                       isDark,
                     ),
                     const SizedBox(height: 6),

@@ -10,7 +10,6 @@ import '../cubits/theme/theme_cubit.dart';
 import '../widgets/dialogs/logout_dialog.dart';
 import '../widgets/valuate_logo.dart';
 import 'account/change_password_screen.dart';
-import 'account/currency_screen.dart';
 import 'account/profile_screen.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'legal/privacy_policy_screen.dart';
@@ -19,7 +18,6 @@ import 'market/market_intelligence_screen.dart';
 import 'projects/projects_list_screen.dart';
 import 'settings/settings_screen.dart';
 import 'workspace/consolidations_screen.dart';
-import 'workspace/countries_screen.dart';
 import 'workspace/reports_screen.dart';
 
 class MainShellScreen extends StatelessWidget {
@@ -169,20 +167,6 @@ class MainShellScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  _drawerItem(
-                    icon: Icons.public_rounded,
-                    title: locale == 'ar' ? 'الدول وتكاليف البناء' : 'Countries & Costs',
-                    isSelected: false,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CountriesScreen(),
-                        ),
-                      );
-                    },
-                  ),
 
                   _drawerSectionTitle(locale == 'ar' ? 'الحساب والإعدادات' : 'Account & Settings', isDark),
                   _drawerItem(
@@ -209,20 +193,6 @@ class MainShellScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (_) => const SettingsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _drawerItem(
-                    icon: Icons.currency_exchange_rounded,
-                    title: locale == 'ar' ? 'العملات' : 'Currency',
-                    isSelected: false,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CurrencyScreen(),
                         ),
                       );
                     },

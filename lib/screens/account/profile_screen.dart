@@ -168,12 +168,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isDark = context.watch<ThemeCubit>().state;
     final locale = context.watch<LocaleCubit>().state;
     final isAr = locale == 'ar';
-    
-    
+
 
     final surfaceBg = isDark ? const Color(0xFF131A31) : Colors.white;
     final borderColor = isDark ? const Color(0xFF1E2A4A) : const Color(0xFFE2E8F0);
     final inputBg = isDark ? const Color(0xFF0F1426) : const Color(0xFFF8FAFC);
+
 
 
     return Scaffold(
@@ -489,41 +489,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 14),
 
-            // Company Name & Company Phone
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Company Name
-                Expanded(
-                  child: _buildTextField(
-                    label: isAr ? 'اسم الشركة' : 'Company Name',
-                    isRequired: true,
-                    controller: _companyNameController,
-                    hintText: isAr ? 'اسم الشركة' : 'Company Name',
-                    prefixIcon: Icons.business_center_outlined,
-                    isDark: isDark,
-                    inputBg: inputBg,
-                    borderColor: borderColor,
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? (isAr ? 'اسم الشركة مطلوب' : 'Company name is required')
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                // Company Phone
-                Expanded(
-                  child: _buildTextField(
-                    label: isAr ? 'هاتف الشركة' : 'Company Phone',
-                    isRequired: false,
-                    controller: _companyPhoneController,
-                    hintText: isAr ? 'هاتف الشركة' : 'Company Phone',
-                    prefixIcon: Icons.phone_outlined,
-                    isDark: isDark,
-                    inputBg: inputBg,
-                    borderColor: borderColor,
-                  ),
-                ),
-              ],
+            // Company Name
+            _buildTextField(
+              label: isAr ? 'اسم الشركة' : 'Company Name',
+              isRequired: true,
+              controller: _companyNameController,
+              hintText: isAr ? 'اسم الشركة' : 'Company Name',
+              prefixIcon: Icons.business_center_outlined,
+              isDark: isDark,
+              inputBg: inputBg,
+              borderColor: borderColor,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? (isAr ? 'اسم الشركة مطلوب' : 'Company name is required')
+                  : null,
+            ),
+            const SizedBox(height: 14),
+
+            // Company Phone
+            _buildTextField(
+              label: isAr ? 'هاتف الشركة' : 'Company Phone',
+              isRequired: false,
+              controller: _companyPhoneController,
+              hintText: isAr ? 'هاتف الشركة' : 'Company Phone',
+              prefixIcon: Icons.phone_outlined,
+              isDark: isDark,
+              inputBg: inputBg,
+              borderColor: borderColor,
             ),
             const SizedBox(height: 24),
 
@@ -548,58 +539,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 14),
 
-            // Full Name & Phone Number
-            Row(
+            // Full Name
+            _buildTextField(
+              label: isAr ? 'الاسم الكامل' : 'Full Name',
+              isRequired: true,
+              controller: _fullNameController,
+              hintText: isAr ? 'الاسم الكامل' : 'Full Name',
+              prefixIcon: Icons.person_outline_rounded,
+              isDark: isDark,
+              inputBg: inputBg,
+              borderColor: borderColor,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? (isAr ? 'الاسم الكامل مطلوب' : 'Full name is required')
+                  : null,
+            ),
+            const SizedBox(height: 14),
+
+            // Phone Number
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Full Name
-                Expanded(
-                  child: _buildTextField(
-                    label: isAr ? 'الاسم الكامل' : 'Full Name',
-                    isRequired: true,
-                    controller: _fullNameController,
-                    hintText: isAr ? 'الاسم الكامل' : 'Full Name',
-                    prefixIcon: Icons.person_outline_rounded,
-                    isDark: isDark,
-                    inputBg: inputBg,
-                    borderColor: borderColor,
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? (isAr ? 'الاسم الكامل مطلوب' : 'Full name is required')
-                        : null,
-                  ),
+                _buildTextField(
+                  label: isAr ? 'رقم الهاتف' : 'Phone Number',
+                  isRequired: false,
+                  controller: _phoneController,
+                  hintText: isAr ? 'رقم الهاتف' : 'Phone Number',
+                  prefixIcon: Icons.phone_outlined,
+                  isDark: isDark,
+                  inputBg: inputBg,
+                  borderColor: borderColor,
                 ),
-                const SizedBox(width: 14),
-                // Phone Number
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildTextField(
-                        label: isAr ? 'رقم الهاتف' : 'Phone Number',
-                        isRequired: false,
-                        controller: _phoneController,
-                        hintText: isAr ? 'رقم الهاتف' : 'Phone Number',
-                        prefixIcon: Icons.phone_outlined,
-                        isDark: isDark,
-                        inputBg: inputBg,
-                        borderColor: borderColor,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isAr
-                            ? 'يُستخدم للتحقق من تسجيل الدخول واستعادة الحساب'
-                            : 'Used for login verification and account recovery',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 4),
+                Text(
+                  isAr
+                      ? 'يُستخدم للتحقق من تسجيل الدخول واستعادة الحساب'
+                      : 'Used for login verification and account recovery',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
             // Email Address
             _buildTextField(
@@ -620,47 +602,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // Bottom Actions (حفظ التغيرات, تجاهل التغيرات)
             Row(
               children: [
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.check_rounded, size: 16),
+                    label: Text(
+                      isAr ? 'حفظ التغيرات' : 'Save Changes',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
+                    onPressed: _isSaving ? null : _saveChanges,
                   ),
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.check_rounded, size: 16),
-                  label: Text(
-                    isAr ? 'حفظ التغيرات' : 'Save Changes',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                  ),
-                  onPressed: _isSaving ? null : _saveChanges,
                 ),
                 const SizedBox(width: 12),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                    foregroundColor: isDark ? Colors.white70 : Colors.black87,
-                    side: BorderSide(color: borderColor),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      foregroundColor: isDark ? Colors.white70 : Colors.black87,
+                      side: BorderSide(color: borderColor),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                  ),
-                  onPressed: _resetChanges,
-                  child: Text(
-                    isAr ? 'تجاهل التغيرات' : 'Discard Changes',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    onPressed: _resetChanges,
+                    child: Text(
+                      isAr ? 'تجاهل التغيرات' : 'Discard Changes',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ),
               ],

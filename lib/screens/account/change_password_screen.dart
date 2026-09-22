@@ -88,7 +88,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         actions: [
           // User Name Pill
           Container(
-            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
@@ -105,31 +105,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.darkText : AppColors.lightText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Language Badge
-          Container(
-            margin: const EdgeInsets.only(top: 10, bottom: 10, right: 14, left: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: borderColor),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.language_rounded, size: 14, color: AppColors.gold),
-                const SizedBox(width: 4),
-                Text(
-                  isAr ? 'AR' : 'EN',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
                     color: isDark ? AppColors.darkText : AppColors.lightText,
                   ),
                 ),

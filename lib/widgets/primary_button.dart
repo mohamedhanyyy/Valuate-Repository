@@ -33,6 +33,7 @@ class PrimaryButton extends StatelessWidget {
           backgroundColor: btnBg,
           foregroundColor: Colors.white,
           elevation: 2,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           shadowColor: btnBg.withValues(alpha: 0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -54,19 +55,25 @@ class PrimaryButton extends StatelessWidget {
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   if (icon != null) ...[
                     Icon(icon, size: 18),
                     const SizedBox(width: 8),
                   ],
 
-                  Text(
-                    text,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        text,
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
                     ),
                   ),
 

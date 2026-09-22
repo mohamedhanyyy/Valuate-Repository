@@ -50,8 +50,8 @@ class AppColors {
   static const Color dangerLight = Color(0xFFDC2626);
   static const Color success = Color(0xFF22C55E);
   static const Color successLight = Color(0xFF16A34A);
-  static const Color warning = Color(0xFF3E0A07); // Brand burgundy / warning from official theme
-  static const Color warningLight = Color(0xFFB6432C);
+  static const Color warning = Color(0xFFF59E0B); // Vibrant Yellow / Amber for Caution & Warnings
+  static const Color warningLight = Color(0xFFD97706);
   static const Color info = Color(0xFF06B6D4);
   static const Color purple = Color(0xFF8B5CF6);
   static const Color teal = Color(0xFF14B8A6);

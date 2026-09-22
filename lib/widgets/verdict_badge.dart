@@ -19,15 +19,15 @@ class VerdictBadge extends StatelessWidget {
     this.isPending = false,
   });
 
-  Color get _color {
+  Color _getColor(bool isDark) {
     if (isPending) return const Color(0xFF2563EB);
     switch (verdict) {
       case VerdictType.go:
-        return AppColors.success;
+        return isDark ? AppColors.success : AppColors.successLight;
       case VerdictType.caution:
-        return AppColors.warning;
+        return isDark ? const Color(0xFFFBBF24) : AppColors.warning;
       case VerdictType.noGo:
-        return AppColors.danger;
+        return isDark ? AppColors.danger : AppColors.dangerLight;
     }
   }
 
@@ -60,24 +60,25 @@ class VerdictBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = _getColor(isDark);
 
     if (!isExpanded) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: _color.withValues(alpha: 0.15),
+          color: color.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _color.withValues(alpha: 0.6), width: 1),
+          border: Border.all(color: color.withValues(alpha: 0.6), width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_icon, size: 14, color: _color),
+            Icon(_icon, size: 14, color: color),
             const SizedBox(width: 5),
             Text(
               _title,
               style: TextStyle(
-                color: _color,
+                color: color,
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
               ),
@@ -90,9 +91,9 @@ class VerdictBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _color.withValues(alpha: 0.4), width: 1.2),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.2),
       ),
       child: Row(
         children: [
@@ -106,8 +107,8 @@ class VerdictBadge extends StatelessWidget {
                 CircularProgressIndicator(
                   value: isPending ? 0.0 : score / 100.0,
                   strokeWidth: 4.5,
-                  backgroundColor: _color.withValues(alpha: 0.2),
-                  valueColor: AlwaysStoppedAnimation<Color>(_color),
+                  backgroundColor: color.withValues(alpha: 0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
                 ),
                 Text(
                   isPending ? '--' : '$score',
@@ -128,14 +129,14 @@ class VerdictBadge extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(_icon, size: 18, color: _color),
+                    Icon(_icon, size: 18, color: color),
                     const SizedBox(width: 6),
                     Text(
                       _title,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: _color,
+                        color: color,
                       ),
                     ),
                   ],

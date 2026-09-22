@@ -72,23 +72,35 @@ class _SignInScreenState extends State<SignInScreen> {
               AppSnackBar.showError(context, message: state.message);
             }
           },
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Top Action Bar (Theme + Language)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ValuateLogo(height: 32, isDark: isDark),
-                    const ThemeLangBar(),
-                  ],
-                ),
-                const SizedBox(height: 20),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 22,
+                        vertical: 16,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Top Action Bar (Theme + Language)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ValuateLogo(height: 32, isDark: isDark),
+                              const ThemeLangBar(),
+                            ],
+                          ),
+                          const Spacer(),
+                          const SizedBox(height: 12),
 
-                // Sign In Form Card
-                Container(
+                          // Sign In Form Card
+                          Container(
                   padding: const EdgeInsets.all(22),
                   decoration: BoxDecoration(
                     color: isDark
@@ -204,43 +216,65 @@ class _SignInScreenState extends State<SignInScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: Checkbox(
-                                    value: _keepLoggedIn,
-                                    activeColor: AppColors.primaryBlue,
-                                    side: BorderSide(
-                                      color: isDark
-                                          ? AppColors.darkBorder
-                                          : AppColors.lightBorder,
+                            Flexible(
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(4),
+                                onTap: () {
+                                  setState(() {
+                                    _keepLoggedIn = !_keepLoggedIn;
+                                  });
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: Checkbox(
+                                        value: _keepLoggedIn,
+                                        activeColor: AppColors.primaryBlue,
+                                        materialTapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        visualDensity: VisualDensity.compact,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        side: BorderSide(
+                                          color: isDark
+                                              ? AppColors.darkBorder
+                                              : AppColors.lightBorder,
+                                        ),
+                                        onChanged: (val) {
+                                          setState(() {
+                                            _keepLoggedIn = val ?? true;
+                                          });
+                                        },
+                                      ),
                                     ),
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _keepLoggedIn = val ?? true;
-                                      });
-                                    },
-                                  ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        AppStrings.get(
+                                          'keepLoggedIn',
+                                          locale: locale,
+                                        ),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark
+                                              ? AppColors.darkTextMuted
+                                              : AppColors.lightTextMuted,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  AppStrings.get(
-                                    'keepLoggedIn',
-                                    locale: locale,
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    color: isDark
-                                        ? AppColors.darkTextMuted
-                                        : AppColors.lightTextMuted,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             InkWell(
+                              borderRadius: BorderRadius.circular(4),
                               onTap: () {
                                 Navigator.push(
                                   context,
@@ -257,7 +291,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                                 style: const TextStyle(
                                   color: AppColors.gold,
-                                  fontSize: 12.5,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -375,11 +409,17 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ],
                 ),
+                const Spacer(),
               ],
             ),
           ),
         ),
       ),
-    );
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
   }
 }
