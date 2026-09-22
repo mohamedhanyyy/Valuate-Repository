@@ -5,8 +5,6 @@ import '../../core/services/pdf_export_service.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/theme/theme_cubit.dart';
 import '../../models/feasibility_study.dart';
-import '../../widgets/charts/cashflow_bar_chart.dart';
-import '../../widgets/charts/cost_breakdown_pie.dart';
 import '../../widgets/kpi_metric_tile.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/verdict_badge.dart';
@@ -413,17 +411,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 ),
               ],
             ),
-          const SizedBox(height: 16),
-
-          // Cost Breakdown Chart
-          _buildCard(
-            title: AppStrings.get('costBreakdown', locale: locale),
-            icon: Icons.donut_large_rounded,
-            isDark: isDark,
-            children: [
-              CostBreakdownPie(study: _study, locale: locale),
-            ],
-          ),
           const SizedBox(height: 24),
         ],
       ),
@@ -706,16 +693,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Chart
-          _buildCard(
-            title: AppStrings.get('cashFlowProjection', locale: locale),
-            icon: Icons.waterfall_chart_rounded,
-            isDark: isDark,
-            children: [
-              CashflowBarChart(study: _study, locale: locale),
-            ],
-          ),
-          const SizedBox(height: 16),
+
 
           // Consolidated Table (Slide 8)
           _buildCard(

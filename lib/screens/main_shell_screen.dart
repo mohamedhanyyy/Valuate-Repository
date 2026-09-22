@@ -2,22 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/constants/app_colors.dart';
-import '../core/constants/app_strings.dart';
 import '../cubits/auth/auth_cubit.dart';
 import '../cubits/auth/auth_state.dart';
 import '../cubits/locale/locale_cubit.dart';
 import '../cubits/theme/theme_cubit.dart';
-import '../widgets/dialogs/logout_dialog.dart';
 import '../widgets/valuate_logo.dart';
-import 'account/change_password_screen.dart';
-import 'account/profile_screen.dart';
 import 'dashboard/dashboard_screen.dart';
-import 'legal/privacy_policy_screen.dart';
-import 'legal/terms_of_service_screen.dart';
-import 'market/market_intelligence_screen.dart';
 import 'projects/projects_list_screen.dart';
 import 'settings/settings_screen.dart';
 import 'workspace/consolidations_screen.dart';
+import 'workspace/countries_screen.dart';
 import 'workspace/reports_screen.dart';
 
 class MainShellScreen extends StatelessWidget {
@@ -108,7 +102,7 @@ class MainShellScreen extends StatelessWidget {
                 children: [
 
 
-                  _drawerSectionTitle(locale == 'ar' ? 'التحليلات والمؤشرات' : 'Analytics & Insights', isDark),
+                  _drawerSectionTitle(locale == 'ar' ? 'مساحة العمل' : 'Workspace', isDark),
                   _drawerItem(
                     icon: Icons.dashboard_outlined,
                     title: locale == 'ar' ? 'لوحة التحكم والملخص' : 'Dashboard Overview',
@@ -123,22 +117,6 @@ class MainShellScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  _drawerItem(
-                    icon: Icons.trending_up_rounded,
-                    title: locale == 'ar' ? 'المؤشرات وبيانات السوق' : 'Market Intelligence',
-                    isSelected: false,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const MarketIntelligenceScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  _drawerSectionTitle(locale == 'ar' ? 'مساحة العمل' : 'Workspace', isDark),
                   _drawerItem(
                     icon: Icons.description_outlined,
                     title: locale == 'ar' ? 'التقارير التنفيذية' : 'Reports',
@@ -167,25 +145,25 @@ class MainShellScreen extends StatelessWidget {
                       );
                     },
                   ),
-
-                  _drawerSectionTitle(locale == 'ar' ? 'الحساب والإعدادات' : 'Account & Settings', isDark),
                   _drawerItem(
-                    icon: Icons.person_outline_rounded,
-                    title: locale == 'ar' ? 'الملف الشخصي' : 'Profile',
+                    icon: Icons.public_rounded,
+                    title: locale == 'ar' ? 'الدول' : 'Countries',
                     isSelected: false,
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const ProfileScreen(),
+                          builder: (_) => const CountriesScreen(),
                         ),
                       );
                     },
                   ),
+
+                  _drawerSectionTitle(locale == 'ar' ? 'الإعدادات' : 'Settings', isDark),
                   _drawerItem(
                     icon: Icons.settings_outlined,
-                    title: locale == 'ar' ? 'الإعدادات العامة' : 'Settings',
+                    title: locale == 'ar' ? 'الإعدادات' : 'Settings',
                     isSelected: false,
                     onTap: () {
                       Navigator.pop(context);
@@ -197,87 +175,7 @@ class MainShellScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  _drawerItem(
-                    icon: Icons.lock_outline_rounded,
-                    title: locale == 'ar' ? 'كلمة المرور' : 'Password',
-                    isSelected: false,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ChangePasswordScreen(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  _drawerSectionTitle(locale == 'ar' ? 'الشروط والسياسات' : 'Legal & Policies', isDark),
-                  _drawerItem(
-                    icon: Icons.gavel_rounded,
-                    title: AppStrings.get('termsOfService', locale: locale),
-                    isSelected: false,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const TermsOfServiceScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _drawerItem(
-                    icon: Icons.privacy_tip_outlined,
-                    title: AppStrings.get('privacyPolicy', locale: locale),
-                    isSelected: false,
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PrivacyPolicyScreen(),
-                        ),
-                      );
-                    },
-                  ),
                 ],
-              ),
-            ),
-
-            // Drawer Footer (Sign out)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: isDark ? AppColors.darkBorderSoft : AppColors.lightBorderSoft,
-                  ),
-                ),
-              ),
-              child: InkWell(
-                onTap: () {
-                  Navigator.pop(context); // Close drawer
-                  LogoutConfirmationDialog.show(
-                    context,
-                    locale: locale,
-                    isDark: isDark,
-                  );
-                },
-                child: Row(
-                  children: [
-                    const Icon(Icons.logout_rounded, color: AppColors.danger, size: 20),
-                    const SizedBox(width: 10),
-                    Text(
-                      locale == 'ar' ? 'تسجيل الخروج' : 'Sign out',
-                      style: const TextStyle(
-                        color: AppColors.danger,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
               ),
             ),
           ],
