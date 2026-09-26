@@ -17,6 +17,14 @@ class AuthCubit extends Cubit<AuthState> {
   }) : super(AuthInitial());
 
   void checkAuthStatus() {
+    if (preferencesService.isGuestMode()) {
+      emit(Authenticated(UserModel.guest(
+        currency: preferencesService.getCurrency(),
+        unit: preferencesService.getUnit(),
+      )));
+      return;
+    }
+
     final cachedUser = preferencesService.getUser();
     final token = preferencesService.getToken();
 
@@ -89,8 +97,11 @@ class AuthCubit extends Cubit<AuthState> {
       );
 
       if (remember) {
+        await preferencesService.setGuestMode(false);
         await preferencesService.setToken(token);
         await preferencesService.setUser(user.toJson());
+      } else {
+        await preferencesService.setGuestMode(false);
       }
 
       emit(Authenticated(user));
@@ -108,6 +119,7 @@ class AuthCubit extends Cubit<AuthState> {
           preferredCurrency: preferencesService.getCurrency(),
           preferredUnit: preferencesService.getUnit(),
         );
+        await preferencesService.setGuestMode(false);
         await preferencesService.setToken(token);
         await preferencesService.setUser(user.toJson());
         emit(Authenticated(user));
@@ -152,6 +164,7 @@ class AuthCubit extends Cubit<AuthState> {
         preferredUnit: preferencesService.getUnit(),
       );
 
+      await preferencesService.setGuestMode(false);
       await preferencesService.setToken(token);
       await preferencesService.setUser(user.toJson());
       emit(Authenticated(user));
@@ -169,6 +182,7 @@ class AuthCubit extends Cubit<AuthState> {
         preferredUnit: preferencesService.getUnit(),
       );
 
+      await preferencesService.setGuestMode(false);
       await preferencesService.setToken(token);
       await preferencesService.setUser(user.toJson());
       emit(Authenticated(user));
@@ -238,8 +252,20 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> signOut() async {
+    await preferencesService.setGuestMode(false);
     await preferencesService.clearToken();
     await preferencesService.clearUser();
     emit(Unauthenticated());
+  }
+
+  Future<void> continueAsGuest() async {
+    final guest = UserModel.guest(
+      currency: preferencesService.getCurrency(),
+      unit: preferencesService.getUnit(),
+    );
+    await preferencesService.setGuestMode(true);
+    await preferencesService.setToken(guest.token!);
+    await preferencesService.setUser(guest.toJson());
+    emit(Authenticated(guest));
   }
 }

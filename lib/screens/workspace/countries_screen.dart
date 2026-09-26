@@ -66,7 +66,11 @@ class _CountriesScreenState extends State<CountriesScreen> {
     final locale = context.watch<LocaleCubit>().state;
     final isAr = locale == 'ar';
     final authState = context.watch<AuthCubit>().state;
-    final userName = authState is Authenticated ? authState.user.fullName : 'mohamed hany';
+    final userName = authState is Authenticated
+        ? (authState.user.isGuest
+            ? (isAr ? 'مستخدم ضيف' : 'Guest User')
+            : authState.user.fullName)
+        : (isAr ? 'مستخدم ضيف' : 'Guest User');
 
     final surfaceBg = isDark ? const Color(0xFF131A31) : Colors.white;
     final bannerBg = isDark ? const Color(0xFF161F38) : const Color(0xFFF1F5F9);

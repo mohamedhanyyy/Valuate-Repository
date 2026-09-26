@@ -37,27 +37,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authState = context.read<AuthCubit>().state;
     final user = authState is Authenticated ? authState.user : null;
 
+    final isGuest = user?.isGuest ?? false;
     _selectedImagePath = user?.avatarPath;
     _companyNameController = TextEditingController(
-      text: (user?.companyName.isNotEmpty ?? false)
+      text: (!isGuest && (user?.companyName.isNotEmpty ?? false))
           ? user!.companyName
-          : (kDebugMode ? 'testeing' : ''),
+          : '',
     );
     _companyPhoneController = TextEditingController();
     _fullNameController = TextEditingController(
-      text: (user?.fullName.isNotEmpty ?? false)
+      text: (!isGuest && (user?.fullName.isNotEmpty ?? false))
           ? user!.fullName
-          : (kDebugMode ? 'mohamed hany' : ''),
+          : '',
     );
     _phoneController = TextEditingController(
-      text: (user?.phone.isNotEmpty ?? false)
+      text: (!isGuest && (user?.phone.isNotEmpty ?? false))
           ? user!.phone
-          : (kDebugMode ? '+201145330378' : ''),
+          : '',
     );
     _emailController = TextEditingController(
-      text: (user?.email.isNotEmpty ?? false)
+      text: (!isGuest && (user?.email.isNotEmpty ?? false))
           ? user!.email
-          : (kDebugMode ? 'mohamedfcis2000@gmail.com' : ''),
+          : '',
     );
   }
 
@@ -144,7 +145,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
 
         if (mounted) {
-          context.read<AuthCubit>().updateUserAvatar(savedImage.path);
+          await context.read<AuthCubit>().updateUserAvatar(savedImage.path);
+          if (!mounted) return;
           final isAr = context.read<LocaleCubit>().state == 'ar';
           AppSnackBar.showSuccess(
             context,

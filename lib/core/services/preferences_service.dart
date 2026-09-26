@@ -11,6 +11,7 @@ class PreferencesService {
   static const String keyUnit = 'app_area_unit';
   static const String keyProjects = 'saved_feasibility_projects';
   static const String keyOnboarding = 'onboarding_completed';
+  static const String keyIsGuest = 'is_guest_mode';
 
   final SharedPreferences _prefs;
 
@@ -25,6 +26,10 @@ class PreferencesService {
   bool isOnboardingCompleted() => _prefs.getBool(keyOnboarding) ?? false;
   Future<bool> setOnboardingCompleted(bool completed) =>
       _prefs.setBool(keyOnboarding, completed);
+
+  // Guest Mode
+  bool isGuestMode() => _prefs.getBool(keyIsGuest) ?? false;
+  Future<bool> setGuestMode(bool isGuest) => _prefs.setBool(keyIsGuest, isGuest);
 
   // Auth Token
   String? getToken() => _prefs.getString(keyToken);
@@ -45,7 +50,11 @@ class PreferencesService {
   Future<bool> setUser(Map<String, dynamic> user) =>
       _prefs.setString(keyUser, jsonEncode(user));
 
-  Future<bool> clearUser() => _prefs.remove(keyUser);
+  Future<bool> clearUser() async {
+    await _prefs.remove(keyUser);
+    await _prefs.remove(keyIsGuest);
+    return true;
+  }
 
   // Theme (dark / light)
   String getThemeMode() => _prefs.getString(keyTheme) ?? 'dark';

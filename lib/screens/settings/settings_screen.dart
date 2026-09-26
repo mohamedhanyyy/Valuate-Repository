@@ -9,6 +9,7 @@ import '../../cubits/theme/theme_cubit.dart';
 import '../../widgets/dialogs/logout_dialog.dart';
 import '../account/change_password_screen.dart';
 import '../account/profile_screen.dart';
+import '../auth/sign_in_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 
@@ -45,92 +46,186 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // User Profile Header Card (clickable to profile)
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
+            // User Profile Header Card (or Guest Banner)
+            if (user?.isGuest ?? false)
+              Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [AppColors.darkBrandBg1, AppColors.darkBrandBg2]
+                        : [AppColors.lightBrandBg1, AppColors.lightBrandBg2],
+                  ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    color: AppColors.primaryBlue.withValues(alpha: 0.4),
                   ),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppColors.primaryBlue, AppColors.brandBlue],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          (user?.firstName.isNotEmpty ?? false)
-                              ? user!.firstName[0].toUpperCase()
-                              : 'V',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryBlue.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.explore_outlined,
+                            color: AppColors.primaryBlue,
+                            size: 24,
                           ),
                         ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                AppStrings.get('guestBannerTitle', locale: locale),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDark ? AppColors.darkText : AppColors.lightText,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                AppStrings.get('guestMode', locale: locale),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.primaryBlue,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      AppStrings.get('guestBannerDesc', locale: locale),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user?.fullName.isNotEmpty ?? false ? user!.fullName : 'mohamed hany',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.darkText : AppColors.lightText,
-                            ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const SignInScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.login_rounded, size: 16),
+                        label: Text(AppStrings.get('signInOrRegister', locale: locale)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            user?.companyName.isNotEmpty ?? false
-                                ? user!.companyName
-                                : 'testeing',
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              color: AppColors.primaryBlue,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            user?.email ?? 'mohamedfcis2000@gmail.com',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                            ),
-                          ),
-                        ],
+                          elevation: 0,
+                        ),
                       ),
-                    ),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
-                      size: 22,
                     ),
                   ],
                 ),
+              )
+            else
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [AppColors.primaryBlue, AppColors.brandBlue],
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            (user?.firstName.isNotEmpty ?? false)
+                                ? user!.firstName[0].toUpperCase()
+                                : 'V',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user?.fullName.isNotEmpty ?? false ? user!.fullName : 'mohamed hany',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? AppColors.darkText : AppColors.lightText,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              user?.companyName.isNotEmpty ?? false
+                                  ? user!.companyName
+                                  : 'Valuate Intelligence',
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                color: AppColors.primaryBlue,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              user?.email ?? '',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
             const SizedBox(height: 20),
 
             // Account & Security Section
@@ -158,10 +253,14 @@ class SettingsScreen extends StatelessWidget {
                     isDark: isDark,
                     trailing: const Icon(Icons.chevron_right_rounded, size: 20),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                      );
+                      if (user?.isGuest ?? false) {
+                        _showAccountRequiredDialog(context, locale, isDark);
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                        );
+                      }
                     },
                   ),
 
@@ -173,10 +272,14 @@ class SettingsScreen extends StatelessWidget {
                     isDark: isDark,
                     trailing: const Icon(Icons.chevron_right_rounded, size: 20),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
-                      );
+                      if (user?.isGuest ?? false) {
+                        _showAccountRequiredDialog(context, locale, isDark);
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                        );
+                      }
                     },
                   ),
                 ],
@@ -349,43 +452,141 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Sign Out Button
-            InkWell(
-              onTap: () {
-                LogoutConfirmationDialog.show(
-                  context,
-                  locale: locale,
-                  isDark: isDark,
-                );
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: BoxDecoration(
-                  color: AppColors.danger.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.logout_rounded, color: AppColors.danger, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      AppStrings.get('signOut', locale: locale),
-                      style: const TextStyle(
-                        color: AppColors.danger,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
+            // Sign Out / Exit Guest Mode Button
+            if (user?.isGuest ?? false)
+              InkWell(
+                onTap: () {
+                  context.read<AuthCubit>().signOut();
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const SignInScreen()),
+                    (route) => false,
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.primaryBlue.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.login_rounded, color: AppColors.primaryBlue, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        AppStrings.get('exitGuestMode', locale: locale),
+                        style: const TextStyle(
+                          color: AppColors.primaryBlue,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+              )
+            else
+              InkWell(
+                onTap: () {
+                  LogoutConfirmationDialog.show(
+                    context,
+                    locale: locale,
+                    isDark: isDark,
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.logout_rounded, color: AppColors.danger, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        AppStrings.get('signOut', locale: locale),
+                        style: const TextStyle(
+                          color: AppColors.danger,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showAccountRequiredDialog(BuildContext context, String locale, bool isDark) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.lock_outline_rounded, color: AppColors.primaryBlue, size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                AppStrings.get('accountRequired', locale: locale),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.darkText : AppColors.lightText,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          AppStrings.get('accountRequiredMessage', locale: locale),
+          style: TextStyle(
+            fontSize: 13,
+            color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              locale == 'ar' ? 'إلغاء' : 'Cancel',
+              style: TextStyle(
+                color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SignInScreen()),
+              );
+            },
+            child: Text(
+              AppStrings.get('signInOrRegister', locale: locale),
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }

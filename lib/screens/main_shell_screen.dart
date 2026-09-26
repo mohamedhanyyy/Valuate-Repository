@@ -7,6 +7,7 @@ import '../cubits/auth/auth_state.dart';
 import '../cubits/locale/locale_cubit.dart';
 import '../cubits/theme/theme_cubit.dart';
 import '../widgets/valuate_logo.dart';
+import 'auth/sign_in_screen.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'projects/projects_list_screen.dart';
 import 'settings/settings_screen.dart';
@@ -28,8 +29,15 @@ class MainShellScreen extends StatelessWidget {
     final isDark = context.watch<ThemeCubit>().state;
     final locale = context.watch<LocaleCubit>().state;
     final authState = context.watch<AuthCubit>().state;
-    final userName = authState is Authenticated ? authState.user.fullName : 'mohamed hany';
-    final userEmail = authState is Authenticated ? authState.user.email : 'mohamedfcis2000@gmail.com';
+    final isGuest = authState is Authenticated ? authState.user.isGuest : false;
+    final userName = authState is Authenticated
+        ? (authState.user.isGuest
+            ? (locale == 'ar' ? 'مستخدم ضيف' : 'Guest User')
+            : authState.user.fullName)
+        : (locale == 'ar' ? 'مستخدم ضيف' : 'Guest User');
+    final userEmail = authState is Authenticated && !authState.user.isGuest
+        ? authState.user.email
+        : (locale == 'ar' ? 'وضع الاستكشاف (زائر)' : 'Guest / Explore Mode');
     final userAvatar = authState is Authenticated ? authState.user.avatarPath : null;
     final hasAvatar = userAvatar != null && userAvatar.isNotEmpty && File(userAvatar).existsSync();
 
@@ -91,6 +99,55 @@ class MainShellScreen extends StatelessWidget {
                       color: isDark ? AppColors.darkTextFaint : AppColors.lightTextFaint,
                     ),
                   ),
+                  if (isGuest) ...[
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SignInScreen(),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: AppColors.primaryBlue.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.login_rounded,
+                              size: 14,
+                              color: AppColors.primaryBlue,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              locale == 'ar'
+                                  ? 'تسجيل الدخول / إنشاء حساب'
+                                  : 'Sign In / Register',
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryBlue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

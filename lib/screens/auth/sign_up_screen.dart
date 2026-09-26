@@ -338,6 +338,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 14),
+
+                    // Continue as Guest link
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () {
+                          context.read<AuthCubit>().continueAsGuest();
+                        },
+                        icon: const Icon(Icons.explore_outlined, size: 16, color: AppColors.primaryBlue),
+                        label: Text(
+                          AppStrings.get('continueAsGuest', locale: locale),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryBlue,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

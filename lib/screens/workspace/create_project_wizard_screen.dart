@@ -138,9 +138,9 @@ class _CreateProjectWizardScreenState extends State<CreateProjectWizardScreen> {
     super.initState();
     final isAr = context.read<LocaleCubit>().state == 'ar';
     final authState = context.read<AuthCubit>().state;
-    final defaultDevName = authState is Authenticated
+    final defaultDevName = authState is Authenticated && !authState.user.isGuest
         ? authState.user.fullName
-        : (kDebugMode ? (isAr ? 'محمد هاني' : 'Mohamed Hany') : '');
+        : (isAr ? 'مطور عقاري' : 'Valuate Developer');
     _developerNameController.text = defaultDevName;
 
     // Initialize controllers for sectors

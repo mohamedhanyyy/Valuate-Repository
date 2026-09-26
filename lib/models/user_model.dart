@@ -9,6 +9,7 @@ class UserModel {
   final String preferredCurrency;
   final String preferredUnit;
   final String? avatarPath;
+  final bool isGuest;
 
   UserModel({
     required this.id,
@@ -21,9 +22,31 @@ class UserModel {
     this.preferredCurrency = 'SAR',
     this.preferredUnit = 'sqm',
     this.avatarPath,
+    this.isGuest = false,
   });
 
-  String get fullName => '$firstName $lastName'.trim();
+  String get fullName {
+    final name = '$firstName $lastName'.trim();
+    if (name.isEmpty && isGuest) {
+      return 'Guest User';
+    }
+    return name;
+  }
+
+  factory UserModel.guest({String currency = 'SAR', String unit = 'sqm'}) {
+    return UserModel(
+      id: 'guest_user',
+      firstName: 'Guest',
+      lastName: 'User',
+      email: '',
+      companyName: 'Valuate Intelligence',
+      phone: '',
+      token: 'val_guest_token',
+      preferredCurrency: currency,
+      preferredUnit: unit,
+      isGuest: true,
+    );
+  }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
@@ -37,6 +60,7 @@ class UserModel {
       preferredCurrency: json['preferred_currency'] ?? json['currency'] ?? 'SAR',
       preferredUnit: json['preferred_unit'] ?? json['unit'] ?? 'sqm',
       avatarPath: json['avatar_path'] ?? json['avatarPath'],
+      isGuest: json['is_guest'] as bool? ?? false,
     );
   }
 
@@ -52,6 +76,7 @@ class UserModel {
       'preferred_currency': preferredCurrency,
       'preferred_unit': preferredUnit,
       'avatar_path': avatarPath,
+      'is_guest': isGuest,
     };
   }
 
@@ -66,6 +91,7 @@ class UserModel {
     String? preferredCurrency,
     String? preferredUnit,
     String? avatarPath,
+    bool? isGuest,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -78,6 +104,7 @@ class UserModel {
       preferredCurrency: preferredCurrency ?? this.preferredCurrency,
       preferredUnit: preferredUnit ?? this.preferredUnit,
       avatarPath: avatarPath ?? this.avatarPath,
+      isGuest: isGuest ?? this.isGuest,
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/services/preferences_service.dart';
+import '../../cubits/auth/auth_cubit.dart';
 import '../../cubits/locale/locale_cubit.dart';
 import '../../cubits/theme/theme_cubit.dart';
 import '../../widgets/primary_button.dart';
@@ -11,6 +12,7 @@ import '../../widgets/skyline_widget.dart';
 import '../../widgets/theme_lang_bar.dart';
 import '../../widgets/valuate_logo.dart';
 import '../auth/sign_in_screen.dart';
+import '../main_shell_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final PreferencesService preferencesService;
@@ -34,9 +36,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _completeOnboarding() async {
     await widget.preferencesService.setOnboardingCompleted(true);
     if (!mounted) return;
-    Navigator.of(
+    await Navigator.of(
       context,
     ).pushReplacement(MaterialPageRoute(builder: (_) => const SignInScreen()));
+  }
+
+  Future<void> _continueAsGuest() async {
+    await widget.preferencesService.setOnboardingCompleted(true);
+    if (!mounted) return;
+    await context.read<AuthCubit>().continueAsGuest();
+    if (!mounted) return;
+    await Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const MainShellScreen()),
+    );
   }
 
   @override
@@ -96,7 +108,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       const ThemeLangBar(),
                       const SizedBox(width: 8),
                       TextButton(
-                        onPressed: _completeOnboarding,
+                        onPressed: _continueAsGuest,
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -228,24 +240,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               const SizedBox(height: 20),
 
-              PrimaryButton(
-                text: _currentPage == slides.length - 1
-                    ? (locale == 'ar'
-                          ? 'ابدأ الآن / تسجيل الدخول'
-                          : 'Get Started / Sign In')
-                    : (locale == 'ar' ? 'التالي' : 'Next'),
-                backgroundColor: AppColors.primaryBlue,
-                onPressed: () {
-                  if (_currentPage < slides.length - 1) {
+              if (_currentPage == slides.length - 1) ...[
+                PrimaryButton(
+                  text: AppStrings.get('continueAsGuest', locale: locale),
+                  backgroundColor: AppColors.primaryBlue,
+                  onPressed: _continueAsGuest,
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: _completeOnboarding,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    side: BorderSide(
+                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    AppStrings.get('signIn', locale: locale),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? AppColors.darkText : AppColors.lightText,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                PrimaryButton(
+                  text: locale == 'ar' ? 'التالي' : 'Next',
+                  backgroundColor: AppColors.primaryBlue,
+                  onPressed: () {
                     _pageController.nextPage(
                       duration: const Duration(milliseconds: 350),
                       curve: Curves.easeInOut,
                     );
-                  } else {
-                    _completeOnboarding();
-                  }
-                },
-              ),
+                  },
+                ),
+              ],
               const SizedBox(height: 8),
             ],
           ),

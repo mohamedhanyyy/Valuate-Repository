@@ -28,7 +28,15 @@ class DashboardScreen extends StatelessWidget {
     final isDark = context.watch<ThemeCubit>().state;
     final locale = context.watch<LocaleCubit>().state;
     final authState = context.watch<AuthCubit>().state;
-    final userName = authState is Authenticated ? authState.user.firstName : 'mohamed';
+    final isGuest = authState is Authenticated ? authState.user.isGuest : false;
+    final userName = authState is Authenticated && !authState.user.isGuest
+        ? authState.user.firstName
+        : '';
+    final welcomeGreeting = isGuest
+        ? (locale == 'ar' ? 'مرحباً بك في ڤاليوإت' : 'Welcome to Valuate')
+        : (locale == 'ar'
+            ? (userName.isNotEmpty ? 'مرحباً، $userName' : 'مرحباً بك')
+            : (userName.isNotEmpty ? 'Welcome back, $userName' : 'Welcome back'));
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.lightBg,
@@ -84,7 +92,7 @@ class DashboardScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  locale == 'ar' ? 'مرحباً، $userName' : 'Welcome back, $userName',
+                                  welcomeGreeting,
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
