@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:valuate_app/core/services/pdf_export_service.dart';
 import 'package:valuate_app/models/feasibility_study.dart';
@@ -28,8 +27,6 @@ void main() {
     );
 
     expect(pdfBytes.isNotEmpty, true);
-    final file = File('final_arabic_pdf_output.pdf');
-    await file.writeAsBytes(pdfBytes);
   });
 
   test('Generate English PDF through PdfExportService', () async {
@@ -54,8 +51,6 @@ void main() {
     );
 
     expect(pdfBytes.isNotEmpty, true);
-    final file = File('final_english_pdf_output.pdf');
-    await file.writeAsBytes(pdfBytes);
   });
 
 }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -56,6 +55,6 @@ void main() {
     );
 
     final bytes = await pdf.save();
-    await File('test_full_render.pdf').writeAsBytes(bytes);
+    expect(bytes.isNotEmpty, true);
   });
 }
