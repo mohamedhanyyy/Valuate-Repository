@@ -136,7 +136,7 @@ class AppStrings {
       'sqm': 'Square Meters (m²)',
       'sqft': 'Square Feet (sq ft)',
       'about': 'About Valuate',
-      'version': 'Version 1.0.0 (MENA Cloud)',
+      'version': 'Version 1.0.1 (MENA Cloud)',
       'signOut': 'Sign Out',
       'deleteAccount': 'Delete Account',
 
@@ -310,7 +310,7 @@ class AppStrings {
       'sqm': 'متر مربع (م²)',
       'sqft': 'قدم مربع',
       'about': 'عن منصة فاليوإيت',
-      'version': 'الإصدار 1.0.0 - سحابة الشرق الأوسط',
+      'version': 'الإصدار 1.0.1 - سحابة الشرق الأوسط',
       'signOut': 'تسجيل الخروج',
       'deleteAccount': 'حذف الحساب',
 
